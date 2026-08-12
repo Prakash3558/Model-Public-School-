@@ -1,0 +1,51 @@
+{
+  "databaseId": "ai-studio-mpssiktadigitalc-334081cf-0517-4f19-8fb7-7076e54eb5b3",
+  "collections": [
+    {
+      "path": "users",
+      "definition": {
+        "entityName": "user",
+        "description": "User profiles for authenticated students, teachers, parents, and admins",
+        "fields": [
+          {"name": "id", "type": "string", "required": true},
+          {"name": "email", "type": "string", "required": true},
+          {"name": "displayName", "type": "string", "required": false},
+          {"name": "photoURL", "type": "string", "required": false},
+          {"name": "role", "type": "string", "required": true},
+          {"name": "createdAt", "type": "timestamp", "required": true}
+        ],
+        "indexes": []
+      }
+    },
+    {
+      "path": "attendance",
+      "definition": {
+        "entityName": "attendance_record",
+        "description": "Daily student attendance records logged by teachers",
+        "fields": [
+          {"name": "studentId", "type": "string", "required": true},
+          {"name": "date", "type": "string", "required": true},
+          {"name": "status", "type": "string", "required": true},
+          {"name": "classNum", "type": "string", "required": true},
+          {"name": "section", "type": "string", "required": true}
+        ],
+        "indexes": []
+      }
+    },
+    {
+      "path": "notices",
+      "definition": {
+        "entityName": "notice",
+        "description": "Official school announcements and board notices",
+        "fields": [
+          {"name": "title", "type": "string", "required": true},
+          {"name": "content", "type": "string", "required": true},
+          {"name": "category", "type": "string", "required": true},
+          {"name": "date", "type": "string", "required": true},
+          {"name": "important", "type": "boolean", "required": false}
+        ],
+        "indexes": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Model Public School (MPS Sikta)",
+  "short_name": "MPS Sikta",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1738",
+  "theme_color": "#1e3a8a"
+}
