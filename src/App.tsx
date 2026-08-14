@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from './context/AuthContext';
 import { CMSProvider } from './context/CMSContext';
 import { Header } from './components/common/Header';
@@ -119,6 +120,8 @@ export default function App() {
               <FloatingAIWidget />
             </Suspense>
           )}
+
+          <Analytics />
         </div>
       </CMSProvider>
     </AuthProvider>
