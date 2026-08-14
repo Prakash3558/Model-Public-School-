@@ -56,9 +56,14 @@ app.use((req, res, next) => {
 
 app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1d', etag: true }));
 
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const UPLOADS_DIR = isServerless ? '/tmp/uploads' : path.join(process.cwd(), 'public', 'uploads');
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (e) {
+  // Read-only serverless filesystem fallback
 }
 
 app.get(['/favicon.ico', '/favicon.png', '/apple-touch-icon.png', '/logo.png', '/logo.jpg'], (req, res) => {
@@ -75,12 +80,16 @@ app.get(['/favicon.ico', '/favicon.png', '/apple-touch-icon.png', '/logo.png', '
   }
 });
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = isServerless ? '/tmp/data' : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 // Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {
+  // Read-only serverless filesystem fallback
 }
 
 // Initial Seed Data
@@ -3146,4 +3155,9 @@ async function startServer() {
   });
 }
 
-startServer();
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+export default app;
+export { app };

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, Teacher, Student } from '../types';
 import { supabase } from '../lib/supabase';
+import { getApiBaseUrl } from '../lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +10,7 @@ interface AuthContextType {
   firebaseUser: any;
   isEditMode: boolean;
   mfaEnabled: boolean;
+  appUrl: string;
   toggleMFA: (enabled: boolean) => Promise<void>;
   toggleEditMode: () => void;
   loginUser: (data: { user: User; teacher?: Teacher; student?: Student; mfaEnabled?: boolean }) => void;
@@ -26,20 +28,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return localStorage.getItem('mps_mfa_enabled') === 'true';
   });
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('mps_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('mps_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
   const [teacher, setTeacher] = useState<Teacher | null>(() => {
-    const saved = localStorage.getItem('mps_teacher');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('mps_teacher');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
   const [student, setStudent] = useState<Student | null>(() => {
-    const saved = localStorage.getItem('mps_student');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('mps_student');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
   });
   const [isEditMode, setIsEditMode] = useState<boolean>(() => {
-    return localStorage.getItem('mps_edit_mode') === 'true';
+    try {
+      const savedUser = localStorage.getItem('mps_user');
+      const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+      if (parsedUser?.role === 'admin') {
+        return localStorage.getItem('mps_edit_mode') === 'true';
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   });
+
+  const appUrl = useMemo(() => getApiBaseUrl(), []);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -174,6 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     firebaseUser,
     isEditMode,
     mfaEnabled,
+    appUrl,
     toggleMFA,
     toggleEditMode,
     loginUser,
@@ -188,6 +214,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     firebaseUser,
     isEditMode,
     mfaEnabled,
+    appUrl,
     toggleMFA,
     toggleEditMode,
     loginUser,
