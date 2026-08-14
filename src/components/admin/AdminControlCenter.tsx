@@ -57,6 +57,7 @@ export const AdminControlCenter: React.FC = () => {
   const [showTeacherModal, setShowTeacherModal] = useState(false);
   const [showTeacherPassword, setShowTeacherPassword] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [editingTeacherProfile, setEditingTeacherProfile] = useState<Teacher | null>(null);
   const [editTeacherPassword, setEditTeacherPassword] = useState('');
   const [newTeacher, setNewTeacher] = useState({
     name: '',
@@ -254,6 +255,22 @@ export const AdminControlCenter: React.FC = () => {
     }
   };
 
+  const handleSaveTeacherProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTeacherProfile) return;
+    try {
+      setTeachers(prev => prev.map(t => t.id === editingTeacherProfile.id ? editingTeacherProfile : t));
+      const targetId = editingTeacherProfile.id;
+      const profileData = { ...editingTeacherProfile };
+      setEditingTeacherProfile(null);
+      await api.updateTeacher(targetId, profileData);
+      loadAdminData();
+    } catch (err) {
+      console.error('Failed to update teacher profile:', err);
+      loadAdminData();
+    }
+  };
+
   const handleDeleteTeacher = async (id: string) => {
     if (confirm('Are you sure you want to delete this teacher account?')) {
       setTeachers(prev => prev.filter(t => t.id !== id));
@@ -352,8 +369,8 @@ export const AdminControlCenter: React.FC = () => {
     setNotices(prev => [tempNotice, ...prev]);
     setShowNoticeModal(false);
     setNewNotice({ title: '', content: '', category: 'Urgent', targetClass: 'All', isUrgentTicker: true });
-    window.dispatchEvent(new Event('mps_settings_updated'));
-    
+    setTimeout(() => window.dispatchEvent(new Event('mps_settings_updated')), 0);
+
     try {
       await api.createNotice(newNotice);
       loadAdminData();
@@ -365,7 +382,7 @@ export const AdminControlCenter: React.FC = () => {
 
   const handleDeleteNotice = async (id: string) => {
     setNotices(prev => prev.filter(n => n.id !== id));
-    window.dispatchEvent(new Event('mps_settings_updated'));
+    setTimeout(() => window.dispatchEvent(new Event('mps_settings_updated')), 0);
     try {
       await api.deleteNotice(id);
       loadAdminData();
@@ -829,13 +846,13 @@ export const AdminControlCenter: React.FC = () => {
 
             <div>
               <h1 className="text-lg font-black text-white font-heading capitalize flex items-center gap-2">
-                {activeTab === 'site_content' && '🎨 Site Content & Branding Manager'}
-                {activeTab === 'teachers' && '👥 Teacher Accounts & Subjects'}
-                {activeTab === 'students' && '🎓 Student Database & Fee Records'}
-                {activeTab === 'notices' && '📢 Notice Board & Urgent Tickers'}
-                {activeTab === 'admissions' && '📋 Admission Inquiries & Applications'}
-                {activeTab === 'gallery' && '🖼️ Photo Gallery & Campus Media'}
-                {activeTab === 'account' && '⚙️ Security & Master Admin Settings'}
+                {activeTab === 'site_content' && '🎨 Site Content'}
+                {activeTab === 'teachers' && '👥 Teachers'}
+                {activeTab === 'students' && '🎓 Students'}
+                {activeTab === 'notices' && '📢 Notices'}
+                {activeTab === 'admissions' && '📋 Admissions'}
+                {activeTab === 'gallery' && '🖼️ Gallery'}
+                {activeTab === 'account' && '⚙️ Account'}
               </h1>
             </div>
           </div>
@@ -943,6 +960,13 @@ export const AdminControlCenter: React.FC = () => {
                           <td className="p-3.5">{t.subject}</td>
                           <td className="p-3.5">{t.phone}</td>
                           <td className="p-3.5 text-right flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingTeacherProfile(t)}
+                              className="px-3 py-1.5 bg-blue-950/80 hover:bg-blue-900 border border-blue-700/80 text-blue-300 font-bold text-xs rounded-xl transition-all flex items-center gap-1"
+                              title="Edit Full Teacher Profile"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" /> Edit Profile
+                            </button>
                             <button
                               onClick={() => {
                                 setEditingTeacher(t);
@@ -1673,6 +1697,187 @@ export const AdminControlCenter: React.FC = () => {
                   className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow"
                 >
                   Save Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT TEACHER PROFILE */}
+      {editingTeacherProfile && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-800 space-y-4 text-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-amber-400" />
+                <h3 className="text-lg font-black font-heading text-white">Edit Teacher Profile</h3>
+              </div>
+              <button
+                onClick={() => setEditingTeacherProfile(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTeacherProfile} className="space-y-4 text-xs font-medium">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Teacher Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingTeacherProfile.name}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, name: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Username *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingTeacherProfile.username}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, username: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Subject *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingTeacherProfile.subject}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, subject: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Assigned Class *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingTeacherProfile.assignedClass}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, assignedClass: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Section *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingTeacherProfile.assignedSection}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, assignedSection: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    value={editingTeacherProfile.phone}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, phone: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 text-slate-300 font-bold">Email Address</label>
+                  <input
+                    type="email"
+                    value={editingTeacherProfile.email || ''}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, email: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-slate-300 font-bold">Account Password (Optional)</label>
+                <input
+                  type="text"
+                  value={editingTeacherProfile.password || ''}
+                  onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, password: e.target.value })}
+                  placeholder="Leave as is or update password"
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-slate-300 font-bold">Profile Photo URL or Upload</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editingTeacherProfile.photo || ''}
+                    onChange={e => setEditingTeacherProfile({ ...editingTeacherProfile, photo: e.target.value })}
+                    placeholder="https://..."
+                    className="flex-1 p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white text-xs"
+                  />
+                  <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 font-bold px-3 py-2.5 rounded-xl flex items-center gap-1.5 flex-shrink-0">
+                    <Upload className="w-4 h-4" />
+                    <span>Upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            if (reader.result) {
+                              const str = reader.result.toString();
+                              setEditingTeacherProfile({ ...editingTeacherProfile, photo: str });
+                              api.uploadFile(str, file.name).then(res => {
+                                if (res?.url) {
+                                  setEditingTeacherProfile(prev => prev ? { ...prev, photo: res.url } : null);
+                                }
+                              });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                {editingTeacherProfile.photo && (
+                  <div className="mt-2 flex items-center gap-3 bg-slate-800/60 p-2 rounded-xl border border-slate-700">
+                    <img
+                      src={editingTeacherProfile.photo}
+                      alt="Preview"
+                      className="w-12 h-12 rounded-full object-cover border border-amber-500"
+                    />
+                    <span className="text-[11px] text-slate-400 truncate">Photo Preview</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingTeacherProfile(null)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl shadow-lg flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" /> Save Profile Changes
                 </button>
               </div>
             </form>

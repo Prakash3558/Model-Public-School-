@@ -154,6 +154,25 @@ export const TeacherWorkspace: React.FC = () => {
     status: 'In Progress' as 'Pending' | 'In Progress' | 'Completed'
   });
 
+  // Edit Modal States for Teacher Tools
+  const [editingHomework, setEditingHomework] = useState<Homework | null>(null);
+  const [editingOnlineClass, setEditingOnlineClass] = useState<OnlineClass | null>(null);
+  const [editingOnlineExam, setEditingOnlineExam] = useState<OnlineExam | null>(null);
+  const [editingDiaryEntry, setEditingDiaryEntry] = useState<SchoolDiaryEntry | null>(null);
+  const [editingStudyMaterial, setEditingStudyMaterial] = useState<StudyMaterial | null>(null);
+  const [editingTimeTableSlot, setEditingTimeTableSlot] = useState<TimeTableSlot | null>(null);
+  const [editingSyllabusItem, setEditingSyllabusItem] = useState<SyllabusItem | null>(null);
+  const [editingMessage, setEditingMessage] = useState<SchoolMessage | null>(null);
+  const [transportList, setTransportList] = useState<TransportRoute[]>([]);
+  const [editingTransport, setEditingTransport] = useState<TransportRoute | null>(null);
+  const [newTransportForm, setNewTransportForm] = useState({
+    routeName: '',
+    vehicleNo: '',
+    driverName: '',
+    driverPhone: '',
+    fareMonthly: 1000
+  });
+
   // Selected Student for Profile Editing & Password Reset
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [showStudentModal, setShowStudentModal] = useState(false);
@@ -199,7 +218,7 @@ export const TeacherWorkspace: React.FC = () => {
 
   const loadClassData = async (cls: string, sec: string) => {
     try {
-      const [stList, hwList, attList, allAtt, ocList, oeList, ttList, smList, sdList, sylList, msgList] = await Promise.all([
+      const [stList, hwList, attList, allAtt, ocList, oeList, ttList, smList, sdList, sylList, msgList, trList] = await Promise.all([
         api.getStudents(cls, sec).catch(() => []),
         api.getHomework(cls, sec).catch(() => []),
         api.getAttendance(undefined, cls, sec, attendanceDate).catch(() => []),
@@ -210,7 +229,8 @@ export const TeacherWorkspace: React.FC = () => {
         api.getStudyMaterial(cls).catch(() => []),
         api.getSchoolDiary(cls, sec).catch(() => []),
         api.getSyllabus(cls).catch(() => []),
-        api.getSchoolMessages().catch(() => [])
+        api.getSchoolMessages().catch(() => []),
+        api.getTransport().catch(() => [])
       ]);
 
       const validStudents = Array.isArray(stList) ? stList : [];
@@ -224,17 +244,19 @@ export const TeacherWorkspace: React.FC = () => {
       setSyllabusList(Array.isArray(sylList) ? sylList : []);
       setMessagesList(Array.isArray(msgList) ? msgList : []);
       setAllClassAttendance(Array.isArray(allAtt) ? allAtt : []);
+      setTransportList(Array.isArray(trList) ? trList : []);
 
       if (validStudents.length > 0 && !selectedStudentForCard) {
         setSelectedStudentForCard(validStudents[0]);
         setSelectedStudentForReceipt(validStudents[0]);
       }
 
+      const isSundayDate = new Date(attendanceDate + 'T00:00:00').getDay() === 0;
       const map: Record<string, 'Present' | 'Absent' | 'Late' | 'Leave' | 'Holiday'> = {};
       const validAttendance = Array.isArray(attList) ? attList : [];
       validStudents.forEach(s => {
         const found = validAttendance.find(a => a?.studentId === s.id);
-        map[s.id] = found ? found.status : 'Present';
+        map[s.id] = isSundayDate ? 'Holiday' : (found ? found.status : 'Present');
       });
       setAttendanceMap(map);
     } catch (e) {
@@ -302,7 +324,9 @@ export const TeacherWorkspace: React.FC = () => {
     }
   };
 
-  const handleSaveAttendance = async () => {
+  const isSunday = new Date(attendanceDate + 'T00:00:00').getDay() === 0;
+
+  const handleSaveAttendance = async (publish: boolean = false) => {
     try {
       const records = students.map(s => ({
         studentId: s.id,
@@ -310,10 +334,13 @@ export const TeacherWorkspace: React.FC = () => {
         class: selectedClass,
         section: selectedSection,
         date: attendanceDate,
-        status: attendanceMap[s.id] || 'Present'
+        status: isSunday ? ('Holiday' as const) : (attendanceMap[s.id] || 'Present'),
+        isPublished: publish,
+        teacherName: teacher?.name || 'Class Teacher',
+        publishedAt: publish ? new Date().toISOString() : undefined
       }));
       await api.markAttendance(records);
-      alert(`Attendance register for Class ${selectedClass}-${selectedSection} saved successfully!`);
+      alert(publish ? `Daily attendance for ${attendanceDate} published successfully!` : `Attendance draft saved!`);
       loadClassData(selectedClass, selectedSection);
     } catch (e) {
       console.error('Failed to save attendance:', e);
@@ -371,6 +398,77 @@ export const TeacherWorkspace: React.FC = () => {
       await api.deleteHomework(id);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDeleteOnlineClass = async (id: string) => {
+    if (window.confirm('Delete this online class entry?')) {
+      await api.deleteOnlineClass(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleDeleteOnlineExam = async (id: string) => {
+    if (window.confirm('Delete this online exam entry?')) {
+      await api.deleteOnlineExam(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleDeleteDiaryEntry = async (id: string) => {
+    if (window.confirm('Delete this school diary entry?')) {
+      await api.deleteSchoolDiary(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleDeleteStudyMaterial = async (id: string) => {
+    if (window.confirm('Delete this study material?')) {
+      await api.deleteStudyMaterial(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleDeleteTimeTableSlot = async (id: string) => {
+    if (window.confirm('Delete this timetable slot?')) {
+      await api.deleteTimeTableSlot(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleDeleteSyllabusItem = async (id: string) => {
+    if (window.confirm('Delete this syllabus item?')) {
+      await api.deleteSyllabus(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    if (window.confirm('Delete this message?')) {
+      await api.deleteSchoolMessage(id);
+      loadClassData(selectedClass, selectedSection);
+    }
+  };
+
+  const handleCreateTransportRoute = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTransportForm.routeName) return;
+    await api.createTransport({
+      id: 'tr-' + Date.now(),
+      routeName: newTransportForm.routeName,
+      vehicleNo: newTransportForm.vehicleNo,
+      driverName: newTransportForm.driverName,
+      driverPhone: newTransportForm.driverPhone,
+      fareMonthly: Number(newTransportForm.fareMonthly)
+    });
+    setNewTransportForm({ routeName: '', vehicleNo: '', driverName: '', driverPhone: '', fareMonthly: 1000 });
+    loadClassData(selectedClass, selectedSection);
+  };
+
+  const handleDeleteTransportRoute = async (id: string) => {
+    if (window.confirm('Delete this bus route?')) {
+      await api.deleteTransport(id);
+      loadClassData(selectedClass, selectedSection);
     }
   };
 
@@ -514,7 +612,9 @@ export const TeacherWorkspace: React.FC = () => {
         subject: newMessageText.title || 'Class Announcement',
         message: newMessageText.content,
         status: 'Pending',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        sender: teacher?.name || 'Class Teacher',
+        senderRole: 'Teacher'
       });
       setNewMessageText({ title: '', content: '', sender: teacher?.name || 'Class Teacher' });
       loadClassData(selectedClass, selectedSection);
@@ -955,29 +1055,66 @@ export const TeacherWorkspace: React.FC = () => {
               </div>
 
               {/* VIEW 1: DAILY ATTENDANCE REGISTER */}
-              {attendanceViewMode === 'daily' && (
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                    <div>
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Selected Register Date:</span>
-                      <p className="text-[11px] text-slate-500">Pick date to view or modify class attendance</p>
-                    </div>
+              {attendanceViewMode === 'daily' && (() => {
+                const dateRecords = allClassAttendance.filter(a => a.date === attendanceDate);
+                const isPublishedToday = dateRecords.length > 0 && dateRecords.some(a => a.isPublished);
+                const publishedTeacherName = dateRecords.find(a => a.teacherName)?.teacherName || teacher?.name || 'Class Teacher';
 
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="date"
-                        value={attendanceDate}
-                        onChange={e => setAttendanceDate(e.target.value)}
-                        className="p-2 border border-slate-300 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
-                      />
-                      <button
-                        onClick={handleSaveAttendance}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow flex items-center gap-1.5 transition-all"
-                      >
-                        <Save className="w-4 h-4" /> Save Attendance
-                      </button>
+                return (
+                  <div className="space-y-6">
+                    {/* Official Registration Banner */}
+                    {isSunday ? (
+                      <div className="p-4 bg-purple-500/10 border-2 border-purple-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs text-purple-900 dark:text-purple-200 font-bold">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 bg-purple-600 text-white font-black rounded-xl text-[10px] uppercase">Official Holiday</span>
+                          <span>Sunday is an Official Weekly Holiday. Attendance is automatically marked as Holiday for all students.</span>
+                        </div>
+                      </div>
+                    ) : isPublishedToday ? (
+                      <div className="p-4 bg-emerald-500/10 border-2 border-emerald-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs text-emerald-900 dark:text-emerald-200 font-bold">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                          <span>REGISTERED & PUBLISHED: Attendance for {attendanceDate} has been published by {publishedTeacherName}. Visible on Student and Parent dashboards.</span>
+                        </div>
+                        <span className="px-3 py-1 bg-emerald-600 text-white rounded-xl text-[10px] uppercase font-black">Published ✓</span>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-amber-500/10 border-2 border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs text-amber-900 dark:text-amber-200 font-bold">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5 text-amber-600" />
+                          <span>NOT PUBLISHED YET: Daily attendance for {attendanceDate} is currently in draft. Please click "Publish Daily Attendance" to release to students/parents.</span>
+                        </div>
+                        <span className="px-3 py-1 bg-amber-600 text-white rounded-xl text-[10px] uppercase font-black">Draft / Unpublished</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-stone-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <div>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Selected Register Date:</span>
+                        <p className="text-[11px] text-slate-500">Pick date to view or modify class attendance</p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <input
+                          type="date"
+                          value={attendanceDate}
+                          onChange={e => setAttendanceDate(e.target.value)}
+                          className="p-2 border border-slate-300 dark:border-slate-700 rounded-xl text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                        />
+                        <button
+                          onClick={() => handleSaveAttendance(false)}
+                          className="px-3.5 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl flex items-center gap-1.5 hover:bg-slate-300 transition-all"
+                        >
+                          <Save className="w-4 h-4" /> Save Draft
+                        </button>
+                        <button
+                          onClick={() => handleSaveAttendance(true)}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow flex items-center gap-1.5 transition-all"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Publish Daily Attendance
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-bold">
                     <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300">
@@ -1068,7 +1205,8 @@ export const TeacherWorkspace: React.FC = () => {
                     )}
                   </div>
                 </div>
-              )}
+              );
+            })()}
 
               {/* VIEW 2: MONTHLY ATTENDANCE SUMMARY GENERATOR */}
               {attendanceViewMode === 'monthly' && (
@@ -1304,10 +1442,14 @@ export const TeacherWorkspace: React.FC = () => {
 
             <div className="space-y-2">
               {schoolDiaryList.map((note, idx) => (
-                <div key={idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
+                <div key={note.id || idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
                   <div className="flex justify-between items-center font-bold text-slate-900 dark:text-white">
                     <span>{note.title} ({note.subject})</span>
-                    <span className="text-[10px] text-slate-400">{note.date}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400">{note.date}</span>
+                      <button onClick={() => setEditingDiaryEntry(note)} className="p-1 text-indigo-500 hover:bg-indigo-50 rounded-lg" title="Edit Note"><Edit3 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => handleDeleteDiaryEntry(note.id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg" title="Delete Note"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
                   </div>
                   <p className="text-slate-600 dark:text-slate-300 mt-1">{note.content}</p>
                 </div>
@@ -1349,12 +1491,20 @@ export const TeacherWorkspace: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {studyMaterialsList.map((sm, idx) => (
-                <div key={idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
-                  <h4 className="font-bold text-slate-900 dark:text-white">{sm.title}</h4>
-                  <p className="text-slate-500">{sm.subject}</p>
-                  <a href={sm.fileUrl} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1 text-indigo-500 font-bold">
-                    <ExternalLink className="w-3.5 h-3.5" /> View / Download PDF
-                  </a>
+                <div key={sm.id || idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white">{sm.title}</h4>
+                    <p className="text-slate-500">{sm.subject}</p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                    <a href={sm.fileUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-indigo-500 font-bold">
+                      <ExternalLink className="w-3.5 h-3.5" /> View PDF
+                    </a>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setEditingStudyMaterial(sm)} className="p-1 text-indigo-500 hover:bg-indigo-50 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => handleDeleteStudyMaterial(sm.id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1399,9 +1549,13 @@ export const TeacherWorkspace: React.FC = () => {
                     <h4 className="font-bold text-slate-900 dark:text-white">{oc.title} ({oc.subject})</h4>
                     <p className="text-slate-500">Meeting ID: {oc.meetingId} | Passcode: {oc.passcode}</p>
                   </div>
-                  <a href={oc.zoomUrl} target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl font-bold">
-                    Join Zoom
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <a href={oc.zoomUrl} target="_blank" rel="noreferrer" className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl font-bold">
+                      Join Zoom
+                    </a>
+                    <button onClick={() => setEditingOnlineClass(oc)} className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteOnlineClass(oc.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1440,9 +1594,15 @@ export const TeacherWorkspace: React.FC = () => {
 
             <div className="space-y-3">
               {onlineExamsList.map(oe => (
-                <div key={oe.id} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
-                  <h4 className="font-bold text-slate-900 dark:text-white">{oe.title}</h4>
-                  <p className="text-slate-500">Date: {oe.date} | Total Marks: {oe.totalMarks}</p>
+                <div key={oe.id} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white">{oe.title} ({oe.subject})</h4>
+                    <p className="text-slate-500">Date: {oe.date} | Total Marks: {oe.totalMarks} | Duration: {oe.durationMinutes}m</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setEditingOnlineExam(oe)} className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteOnlineExam(oe.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1482,12 +1642,18 @@ export const TeacherWorkspace: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {timeTableList.map((tt, idx) => (
-                <div key={idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
-                  <span className="px-2 py-0.5 bg-teal-500/20 text-teal-600 font-extrabold text-[10px] rounded-lg">
-                    {tt.day} - Period {tt.periodNo}
-                  </span>
-                  <h4 className="font-bold text-slate-900 dark:text-white mt-1">{tt.subject}</h4>
-                  <p className="text-slate-500">{tt.startTime} - {tt.endTime}</p>
+                <div key={tt.id || idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs flex justify-between items-start">
+                  <div>
+                    <span className="px-2 py-0.5 bg-teal-500/20 text-teal-600 font-extrabold text-[10px] rounded-lg">
+                      {tt.day} - Period {tt.periodNo}
+                    </span>
+                    <h4 className="font-bold text-slate-900 dark:text-white mt-1">{tt.subject}</h4>
+                    <p className="text-slate-500">{tt.startTime} - {tt.endTime}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button onClick={() => setEditingTimeTableSlot(tt)} className="p-1 text-indigo-500 hover:bg-indigo-50 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteTimeTableSlot(tt.id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1525,10 +1691,17 @@ export const TeacherWorkspace: React.FC = () => {
 
             <div className="space-y-2">
               {messagesList.map((m, idx) => (
-                <div key={idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs">
-                  <h4 className="font-bold text-slate-900 dark:text-white">{m.title}</h4>
+                <div key={m.id || idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-bold text-slate-900 dark:text-white">{m.title}</h4>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setEditingMessage(m)} className="p-1 text-sky-500 hover:bg-sky-50 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => handleDeleteMessage(m.id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
                   <p className="text-slate-600 dark:text-slate-300 mt-1">{m.content}</p>
-                  <span className="text-[10px] text-slate-400 mt-2 block">{m.date} | Sender: {m.sender}</span>
+                  {m.reply && <p className="text-emerald-600 font-bold bg-emerald-50 dark:bg-emerald-950/40 p-2 rounded-xl border border-emerald-200 dark:border-emerald-800">Teacher Reply: {m.reply}</p>}
+                  <span className="text-[10px] text-slate-400 mt-2 block">{m.date} | Sender: {m.sender} ({m.senderRole || 'Teacher'})</span>
                 </div>
               ))}
             </div>
@@ -1569,16 +1742,20 @@ export const TeacherWorkspace: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {syllabusList.map((s, idx) => (
-                <div key={idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+                <div key={s.id || idx} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
                   <div>
                     <h4 className="font-bold text-slate-900 dark:text-white">{s.chapterName}</h4>
                     <p className="text-slate-500">{s.subject}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] ${
-                    s.status === 'Completed' ? 'bg-emerald-500 text-slate-950' : s.status === 'In Progress' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-700'
-                  }`}>
-                    {s.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-1 rounded-lg font-bold text-[10px] ${
+                      s.status === 'Completed' ? 'bg-emerald-500 text-slate-950' : s.status === 'In Progress' ? 'bg-amber-500 text-slate-950' : 'bg-slate-200 dark:bg-slate-700'
+                    }`}>
+                      {s.status}
+                    </span>
+                    <button onClick={() => setEditingSyllabusItem(s)} className="p-1 text-indigo-500 hover:bg-indigo-50 rounded-lg"><Edit3 className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => handleDeleteSyllabusItem(s.id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1891,8 +2068,66 @@ export const TeacherWorkspace: React.FC = () => {
               <Bus className="w-5 h-5 text-orange-500" /> School Transport & Bus Routes
             </h3>
 
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs space-y-2">
-              <h4 className="font-bold text-amber-900 dark:text-amber-300">Class Bus Tiers</h4>
+            <form onSubmit={handleCreateTransportRoute} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs">
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs">Add New Bus Route & Tier</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <input
+                  type="text"
+                  required
+                  placeholder="Route Name / Stops (e.g. Sikta - Main Market)"
+                  value={newTransportForm.routeName}
+                  onChange={e => setNewTransportForm({ ...newTransportForm, routeName: e.target.value })}
+                  className="p-2.5 rounded-xl border bg-white dark:bg-slate-900"
+                />
+                <input
+                  type="text"
+                  required
+                  placeholder="Bus No (e.g. BR22-P-1002)"
+                  value={newTransportForm.vehicleNo}
+                  onChange={e => setNewTransportForm({ ...newTransportForm, vehicleNo: e.target.value })}
+                  className="p-2.5 rounded-xl border bg-white dark:bg-slate-900"
+                />
+                <input
+                  type="text"
+                  placeholder="Driver Name & Phone"
+                  value={newTransportForm.driverName}
+                  onChange={e => setNewTransportForm({ ...newTransportForm, driverName: e.target.value })}
+                  className="p-2.5 rounded-xl border bg-white dark:bg-slate-900"
+                />
+                <input
+                  type="number"
+                  placeholder="Monthly Fee (₹)"
+                  value={newTransportForm.fareMonthly}
+                  onChange={e => setNewTransportForm({ ...newTransportForm, fareMonthly: Number(e.target.value) })}
+                  className="p-2.5 rounded-xl border bg-white dark:bg-slate-900 font-bold"
+                />
+              </div>
+              <button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">
+                Add Transport Route
+              </button>
+            </form>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {transportList.map(tr => (
+                <div key={tr.id} className="p-4 bg-stone-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-sm">{tr.routeName}</h4>
+                      <p className="text-orange-600 font-bold">Bus: {tr.vehicleNo}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => setEditingTransport(tr)} className="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-lg" title="Edit Route"><Edit3 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => handleDeleteTransportRoute(tr.id)} className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg" title="Delete Route"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+                  <p className="text-slate-500">Driver: {tr.driverName || 'Assigned'} {tr.driverPhone ? `(${tr.driverPhone})` : ''}</p>
+                  <span className="inline-block px-2.5 py-0.5 bg-emerald-500/20 text-emerald-600 font-extrabold rounded-md">Monthly Fare: ₹{tr.fareMonthly || 1000}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs space-y-1">
+              <h4 className="font-bold text-amber-900 dark:text-amber-300">Standard Class Bus Tiers</h4>
               <p>Tier 1 (0-3 KM): ₹750/mo | Tier 2 (3-6 KM): ₹900/mo | Tier 3 (6-10 KM): ₹1000/mo | Tier 4 (10-15 KM): ₹1200/mo | Tier 5 (15+ KM): ₹1500/mo</p>
             </div>
           </div>
@@ -2133,36 +2368,24 @@ export const TeacherWorkspace: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800/60">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-800/60 text-xs">
                 <div>
-                  <label className="block text-amber-900 dark:text-amber-300 font-bold mb-1">Annual Fee Structure (₹)</label>
-                  <input
-                    type="number"
-                    value={editingStudent.feeInfo?.totalAnnual || 25100}
-                    onChange={e =>
-                      setEditingStudent({
-                        ...editingStudent,
-                        feeInfo: { ...(editingStudent.feeInfo || { paid: 0, pending: 25100, months: [] }), totalAnnual: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full p-2 rounded-xl border border-amber-300 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold"
-                  />
+                  <span className="block text-amber-900 dark:text-amber-300 font-bold mb-1">Annual Fee Structure (Read-Only)</span>
+                  <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800 font-extrabold text-slate-900 dark:text-white">
+                    ₹{(editingStudent.feeInfo?.totalAnnual || 25100).toLocaleString()}
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-amber-900 dark:text-amber-300 font-bold mb-1">Pending Fee Dues (₹)</label>
-                  <input
-                    type="number"
-                    value={editingStudent.feeInfo?.pending || 0}
-                    onChange={e =>
-                      setEditingStudent({
-                        ...editingStudent,
-                        feeInfo: { ...(editingStudent.feeInfo || { totalAnnual: 25100, paid: 0, months: [] }), pending: Number(e.target.value) }
-                      })
-                    }
-                    className="w-full p-2 rounded-xl border border-amber-300 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold text-rose-600"
-                  />
+                  <span className="block text-amber-900 dark:text-amber-300 font-bold mb-1">Pending Fee Dues (Read-Only)</span>
+                  <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-amber-200 dark:border-amber-800 font-extrabold text-rose-600">
+                    ₹{(editingStudent.feeInfo?.pending || 0).toLocaleString()}
+                  </div>
                 </div>
+
+                <p className="col-span-1 sm:col-span-2 text-[11px] text-amber-800 dark:text-amber-400 italic">
+                  * Note: Fee structure and pending dues are managed exclusively by the Finance & Admin Accounts department.
+                </p>
               </div>
 
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
@@ -2182,6 +2405,294 @@ export const TeacherWorkspace: React.FC = () => {
                 >
                   Save Student Profile
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Tool Edit Modals */}
+      {editingHomework && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Homework Task</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateHomework(editingHomework.id, editingHomework);
+              setEditingHomework(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Subject</label>
+                <input type="text" value={editingHomework.subject} onChange={e => setEditingHomework({ ...editingHomework, subject: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Task Title</label>
+                <input type="text" value={editingHomework.title} onChange={e => setEditingHomework({ ...editingHomework, title: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Due Date</label>
+                <input type="date" value={editingHomework.dueDate} onChange={e => setEditingHomework({ ...editingHomework, dueDate: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Description</label>
+                <textarea rows={3} value={editingHomework.description} onChange={e => setEditingHomework({ ...editingHomework, description: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingHomework(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingDiaryEntry && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit School Diary Note</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateSchoolDiary(editingDiaryEntry.id, editingDiaryEntry);
+              setEditingDiaryEntry(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Subject</label>
+                <input type="text" value={editingDiaryEntry.subject} onChange={e => setEditingDiaryEntry({ ...editingDiaryEntry, subject: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Title</label>
+                <input type="text" value={editingDiaryEntry.title} onChange={e => setEditingDiaryEntry({ ...editingDiaryEntry, title: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Content / Instruction</label>
+                <textarea rows={3} value={editingDiaryEntry.content || editingDiaryEntry.note || ''} onChange={e => setEditingDiaryEntry({ ...editingDiaryEntry, content: e.target.value, note: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingDiaryEntry(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingStudyMaterial && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Study Material</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateStudyMaterial(editingStudyMaterial.id, editingStudyMaterial);
+              setEditingStudyMaterial(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Subject</label>
+                <input type="text" value={editingStudyMaterial.subject} onChange={e => setEditingStudyMaterial({ ...editingStudyMaterial, subject: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Title</label>
+                <input type="text" value={editingStudyMaterial.title} onChange={e => setEditingStudyMaterial({ ...editingStudyMaterial, title: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">PDF URL / Drive Link</label>
+                <input type="text" value={editingStudyMaterial.fileUrl} onChange={e => setEditingStudyMaterial({ ...editingStudyMaterial, fileUrl: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingStudyMaterial(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingOnlineClass && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Zoom Online Class</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateOnlineClass(editingOnlineClass.id, editingOnlineClass);
+              setEditingOnlineClass(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Class Title</label>
+                <input type="text" value={editingOnlineClass.title} onChange={e => setEditingOnlineClass({ ...editingOnlineClass, title: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Zoom URL</label>
+                <input type="text" value={editingOnlineClass.zoomUrl} onChange={e => setEditingOnlineClass({ ...editingOnlineClass, zoomUrl: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Meeting ID</label>
+                <input type="text" value={editingOnlineClass.meetingId} onChange={e => setEditingOnlineClass({ ...editingOnlineClass, meetingId: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Passcode</label>
+                <input type="text" value={editingOnlineClass.passcode} onChange={e => setEditingOnlineClass({ ...editingOnlineClass, passcode: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingOnlineClass(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingOnlineExam && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Online Exam</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateOnlineExam(editingOnlineExam.id, editingOnlineExam);
+              setEditingOnlineExam(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Exam Title</label>
+                <input type="text" value={editingOnlineExam.title} onChange={e => setEditingOnlineExam({ ...editingOnlineExam, title: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Exam Date</label>
+                <input type="date" value={editingOnlineExam.date} onChange={e => setEditingOnlineExam({ ...editingOnlineExam, date: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Total Marks</label>
+                <input type="number" value={editingOnlineExam.totalMarks} onChange={e => setEditingOnlineExam({ ...editingOnlineExam, totalMarks: Number(e.target.value) })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingOnlineExam(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingTimeTableSlot && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Timetable Slot</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateTimeTableSlot(editingTimeTableSlot.id, editingTimeTableSlot);
+              setEditingTimeTableSlot(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Subject</label>
+                <input type="text" value={editingTimeTableSlot.subject} onChange={e => setEditingTimeTableSlot({ ...editingTimeTableSlot, subject: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Time Range</label>
+                <input type="text" value={editingTimeTableSlot.startTime} onChange={e => setEditingTimeTableSlot({ ...editingTimeTableSlot, startTime: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingTimeTableSlot(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingSyllabusItem && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Syllabus Chapter</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateSyllabus(editingSyllabusItem.id, editingSyllabusItem);
+              setEditingSyllabusItem(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Chapter Name</label>
+                <input type="text" value={editingSyllabusItem.chapterName || editingSyllabusItem.chapters || ''} onChange={e => setEditingSyllabusItem({ ...editingSyllabusItem, chapterName: e.target.value, chapters: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Status</label>
+                <select value={editingSyllabusItem.status} onChange={e => setEditingSyllabusItem({ ...editingSyllabusItem, status: e.target.value as any })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800 font-bold">
+                  <option value="Pending">Pending</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingSyllabusItem(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingMessage && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit / Reply Message</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateSchoolMessage(editingMessage.id, editingMessage);
+              setEditingMessage(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Message Title</label>
+                <input type="text" value={editingMessage.title || editingMessage.subject || ''} onChange={e => setEditingMessage({ ...editingMessage, title: e.target.value, subject: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Message Content</label>
+                <textarea rows={3} value={editingMessage.content || editingMessage.message || ''} onChange={e => setEditingMessage({ ...editingMessage, content: e.target.value, message: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Teacher Reply (Optional)</label>
+                <textarea rows={2} value={editingMessage.reply || ''} onChange={e => setEditingMessage({ ...editingMessage, reply: e.target.value, status: 'Replied' })} placeholder="Type teacher reply to student message..." className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800 text-emerald-600 font-bold" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingMessage(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingTransport && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border shadow-2xl max-w-lg w-full space-y-4">
+            <h3 className="text-lg font-bold font-heading text-slate-900 dark:text-white">Edit Bus Route</h3>
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              await api.updateTransport(editingTransport.id, editingTransport);
+              setEditingTransport(null);
+              loadClassData(selectedClass, selectedSection);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold mb-1">Route Name</label>
+                <input type="text" value={editingTransport.routeName} onChange={e => setEditingTransport({ ...editingTransport, routeName: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Bus Vehicle No</label>
+                <input type="text" value={editingTransport.vehicleNo} onChange={e => setEditingTransport({ ...editingTransport, vehicleNo: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Driver Name & Phone</label>
+                <input type="text" value={editingTransport.driverName} onChange={e => setEditingTransport({ ...editingTransport, driverName: e.target.value })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800" />
+              </div>
+              <div>
+                <label className="block font-bold mb-1">Monthly Fare (₹)</label>
+                <input type="number" value={editingTransport.fareMonthly} onChange={e => setEditingTransport({ ...editingTransport, fareMonthly: Number(e.target.value) })} className="w-full p-2.5 rounded-xl border bg-stone-50 dark:bg-slate-800 font-bold" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setEditingTransport(null)} className="px-4 py-2 bg-slate-200 dark:bg-slate-700 font-bold rounded-xl">Cancel</button>
+                <button type="submit" className="px-5 py-2 bg-amber-500 text-slate-950 font-black rounded-xl">Save Changes</button>
               </div>
             </form>
           </div>

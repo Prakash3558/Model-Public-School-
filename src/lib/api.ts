@@ -14,34 +14,25 @@ const CACHE_TTL_MS = 60000; // 60 seconds default TTL for ultra fast response ti
 
 import { supabase } from './supabase';
 
-let cachedAccessToken: { token: string | null; fetchedAt: number } | null = null;
+let currentAccessToken: string | null = null;
 
-async function getAuthHeaders(customHeaders: Record<string, string> = {}): Promise<Record<string, string>> {
+try {
+  supabase.auth.getSession().then(({ data }) => {
+    currentAccessToken = data?.session?.access_token || null;
+  });
+  supabase.auth.onAuthStateChange((_event, session) => {
+    currentAccessToken = session?.access_token || null;
+  });
+} catch (e) {}
+
+function getAuthHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...customHeaders
   };
   
-  if (cachedAccessToken && Date.now() - cachedAccessToken.fetchedAt < 15000) {
-    if (cachedAccessToken.token) {
-      headers['Authorization'] = `Bearer ${cachedAccessToken.token}`;
-    }
-    return headers;
-  }
-
-  try {
-    const sessionPromise = supabase.auth.getSession();
-    const timeoutPromise = new Promise<{ data: { session: null } }>((resolve) => 
-      setTimeout(() => resolve({ data: { session: null } }), 60)
-    );
-    const { data } = await Promise.race([sessionPromise, timeoutPromise]);
-    const token = data?.session?.access_token || null;
-    cachedAccessToken = { token, fetchedAt: Date.now() };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  } catch (e) {
-    // Ignore error and continue
+  if (currentAccessToken) {
+    headers['Authorization'] = `Bearer ${currentAccessToken}`;
   }
   return headers;
 }
@@ -402,6 +393,16 @@ export const api = {
     return res.json();
   },
 
+  async updateHomework(id: string, homework: Partial<Homework>) {
+    clearApiCache('homework');
+    const res = await fetch(`/api/homework/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(homework),
+    });
+    return res.json();
+  },
+
   async getNotices(forceRefresh = false): Promise<Notice[]> {
     const key = 'notices';
     if (!forceRefresh) {
@@ -584,6 +585,14 @@ export const api = {
     const res = await fetch(`/api/timetable/${id}`, { method: 'DELETE', headers: await getAuthHeaders() });
     return res.json();
   },
+  async updateTimeTableSlot(id: string, payload: Partial<TimeTableSlot>) {
+    const res = await fetch(`/api/timetable/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  },
 
   // Study Material
   async getStudyMaterial(className?: string, section?: string): Promise<StudyMaterial[]> {
@@ -609,6 +618,14 @@ export const api = {
   },
   async deleteStudyMaterial(id: string) {
     const res = await fetch(`/api/study-material/${id}`, { method: 'DELETE', headers: await getAuthHeaders() });
+    return res.json();
+  },
+  async updateStudyMaterial(id: string, payload: Partial<StudyMaterial>) {
+    const res = await fetch(`/api/study-material/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
     return res.json();
   },
 
@@ -638,6 +655,14 @@ export const api = {
     const res = await fetch(`/api/school-diary/${id}`, { method: 'DELETE', headers: await getAuthHeaders() });
     return res.json();
   },
+  async updateSchoolDiary(id: string, payload: Partial<SchoolDiaryEntry>) {
+    const res = await fetch(`/api/school-diary/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  },
 
   // Syllabus
   async getSyllabus(className?: string, section?: string): Promise<SyllabusItem[]> {
@@ -663,6 +688,14 @@ export const api = {
   },
   async deleteSyllabus(id: string) {
     const res = await fetch(`/api/syllabus/${id}`, { method: 'DELETE', headers: await getAuthHeaders() });
+    return res.json();
+  },
+  async updateSyllabus(id: string, payload: Partial<SyllabusItem>) {
+    const res = await fetch(`/api/syllabus/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
     return res.json();
   },
 
@@ -723,6 +756,14 @@ export const api = {
     const res = await fetch(`/api/admit-cards/${id}`, { method: 'DELETE', headers: await getAuthHeaders() });
     return res.json();
   },
+  async updateAdmitCard(id: string, payload: Partial<AdmitCard>) {
+    const res = await fetch(`/api/admit-cards/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  },
 
   // Declarations
   async getDeclarations(): Promise<StudentDeclaration[]> {
@@ -745,6 +786,14 @@ export const api = {
   },
   async deleteDeclaration(id: string) {
     const res = await fetch(`/api/declarations/${id}`, { method: 'DELETE', headers: await getAuthHeaders() });
+    return res.json();
+  },
+  async updateDeclaration(id: string, payload: Partial<StudentDeclaration>) {
+    const res = await fetch(`/api/declarations/${id}`, {
+      method: 'PUT',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
     return res.json();
   },
 

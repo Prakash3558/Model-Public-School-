@@ -22,7 +22,9 @@ export const NoticeTicker: React.FC = React.memo(() => {
     fetchNotices();
 
     const interval = setInterval(fetchNotices, 3000);
-    const handleUpdate = () => fetchNotices();
+    const handleUpdate = () => {
+      setTimeout(() => fetchNotices(), 0);
+    };
 
     window.addEventListener('mps_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);

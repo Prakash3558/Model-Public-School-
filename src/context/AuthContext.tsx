@@ -131,7 +131,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(() => {
-    supabase.auth.signOut().catch(() => {});
+    try {
+      supabase.auth.signOut().catch(() => {});
+    } catch (e) {}
     setUser(null);
     setTeacher(null);
     setStudent(null);
@@ -141,6 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('mps_student');
     localStorage.removeItem('mps_edit_mode');
     localStorage.removeItem('mps_mfa_enabled');
+    // Force direct redirect to homepage on logout
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   }, []);
 
   const updateStudentState = useCallback((updated: Student) => {

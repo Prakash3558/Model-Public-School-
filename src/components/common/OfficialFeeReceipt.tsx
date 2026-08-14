@@ -27,6 +27,17 @@ export interface FeeReceiptItem {
   paid: number;
 }
 
+export interface FeeReceiptTemplateOverrides {
+  headerTitle?: string;
+  headerSubtitle?: string;
+  addressText?: string;
+  footerNotes?: string;
+  udiseCode?: string;
+  affiliationText?: string;
+  authorizedSignatoryTitle?: string;
+  showLogo?: boolean;
+}
+
 export interface OfficialFeeReceiptProps {
   student: Student;
   settings?: SiteSettings | null;
@@ -38,6 +49,7 @@ export interface OfficialFeeReceiptProps {
   customItems?: FeeReceiptItem[];
   customTotal?: number;
   customPaid?: number;
+  templateOverrides?: FeeReceiptTemplateOverrides;
 }
 
 export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
@@ -50,7 +62,8 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
   accountantName,
   customItems,
   customTotal,
-  customPaid
+  customPaid,
+  templateOverrides
 }) => {
   const displayAccountant = accountantName || settings?.receipt_accountant_name || 'Sandeep';
   // Format receipt data
@@ -59,12 +72,12 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
   const currentDate = dateStr || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
   const nowTimestamp = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/');
 
-  const activeMonth = selectedMonth || 'July, 2026';
+  const activeMonth = selectedMonth || 'August, 2026';
 
   // Build itemized fee list
   let items: FeeReceiptItem[] = customItems || [];
   if (items.length === 0) {
-    const tuitionAmount = Math.round((student.feeInfo.totalAnnual || 13200) / 12);
+    const tuitionAmount = Math.round((student.feeInfo?.totalAnnual || 13200) / 12);
     items.push({
       description: 'Tuition Fee',
       amount: tuitionAmount,
@@ -92,11 +105,14 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
   const totalPaid = customPaid !== undefined ? customPaid : items.reduce((acc, i) => acc + i.paid, 0);
   const duesAmount = student.feeInfo?.pending || 0;
 
-  const schoolName = settings?.school_name || 'MODEL PUBLIC SCHOOL';
-  const udiseNo = settings?.udise_code || '10011301103';
-  const schoolWeb = settings?.contact_email ? 'http://www.modelpublicschool.com' : 'http://www.modelpublicschool.com';
-  const schoolAddr = settings?.contact_address || 'Bhawanipur, Kursi Barwa, Sikta, West Champaran, 845307';
+  const schoolName = templateOverrides?.headerTitle || settings?.school_name || 'MODEL PUBLIC SCHOOL';
+  const udiseNo = templateOverrides?.udiseCode || settings?.udise_code || '10011301103';
+  const subtitleText = templateOverrides?.headerSubtitle || `UDISE No. ${udiseNo}, http://www.modelpublicschool.com`;
+  const schoolAddr = templateOverrides?.addressText || settings?.contact_address || 'Bhawanipur, Kursi Barwa, Sikta, West Champaran, 845307';
   const schoolPhone = settings?.contact_phone || '8757968130';
+  const footerNotesText = templateOverrides?.footerNotes || 'Note :: 1. Please deposit the fee before 15th of every month in advance to avoid late payment fine.\n2. Please bring the fee card along at the time of depositing the fees for your convenience.';
+  const signatoryTitle = templateOverrides?.authorizedSignatoryTitle || 'Authorized Signatory';
+  const showLogoOption = templateOverrides?.showLogo !== undefined ? templateOverrides.showLogo : true;
 
   return (
     <div className="w-full max-w-3xl mx-auto my-4 bg-white text-slate-900 font-sans print:my-0 print:p-0 select-text">
@@ -108,22 +124,22 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
         {/* Header Section */}
         <div className="text-center pb-3 border-b border-slate-300">
           <div className="flex items-center justify-center gap-3 mb-1">
-            {settings?.logo_url ? (
-              <img src={settings.logo_url} alt="School Logo" className="w-14 h-14 object-contain" />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-slate-900 text-amber-400 font-black text-xl flex items-center justify-center border-2 border-amber-400">
+            {showLogoOption && settings?.logo_url ? (
+              <img src={settings.logo_url} alt="School Logo" className="max-h-16 max-w-[160px] w-auto h-auto object-contain flex-shrink-0" />
+            ) : showLogoOption ? (
+              <div className="w-14 h-14 rounded-full bg-slate-900 text-amber-400 font-black text-xl flex items-center justify-center border-2 border-amber-400 flex-shrink-0">
                 MPS
               </div>
-            )}
+            ) : null}
             <div className="text-center">
               <h1 className="text-2xl sm:text-3xl font-black text-[#1e3a8a] tracking-wide font-serif uppercase">
                 {schoolName}
               </h1>
               <div className="text-xs font-semibold text-slate-700">
-                UDISE No. {udiseNo}, {schoolWeb}
+                {subtitleText}
               </div>
               <div className="text-xs text-slate-700">
-                {schoolAddr}, Ph: {schoolPhone}
+                {schoolAddr}{schoolPhone ? `, Ph: ${schoolPhone}` : ''}
               </div>
             </div>
           </div>
@@ -146,7 +162,7 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
                 <td className="border-r border-slate-400 p-1.5 font-bold text-slate-700 text-center">Name</td>
                 <td className="border-r border-slate-400 p-1.5 font-bold text-center uppercase">{student.name}</td>
                 <td className="border-r border-slate-400 p-1.5 font-bold text-slate-700 text-center">Class</td>
-                <td className="p-1.5 font-bold text-center">{student.class}` {student.section}</td>
+                <td className="p-1.5 font-bold text-center">Class {student.class} - {student.section}</td>
               </tr>
               <tr className="border-b border-slate-400">
                 <td className="border-r border-slate-400 p-1.5 font-bold text-slate-700 text-center">Father</td>
@@ -202,11 +218,11 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
               </tr>
 
               <tr className="border-b border-slate-400">
-                <td colSpan={4} className="p-1.5 text-center font-bold">Paid via :{paidVia}</td>
+                <td colSpan={4} className="p-1.5 text-center font-bold">Paid via : {paidVia}</td>
               </tr>
 
               <tr>
-                <td colSpan={4} className="p-1.5 text-center font-bold">Current Dues(Till August): {duesAmount}</td>
+                <td colSpan={4} className="p-1.5 text-center font-bold">Current Dues (Till {activeMonth.split(',')[0]}): ₹{duesAmount}</td>
               </tr>
             </tbody>
           </table>
@@ -227,16 +243,14 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
 
           <div className="text-right">
             <div className="font-bold text-slate-900 border-t border-slate-400 pt-1 px-2 inline-block">
-              Authorized Signatory
+              {signatoryTitle}
             </div>
           </div>
         </div>
 
         {/* Instructions */}
-        <div className="text-[10px] text-slate-600 text-center pt-2 border-t border-slate-300 leading-tight">
-          Note :: 1. Please deposit the fee before 15th of every month in advance to avoid late payment fine.
-          <br />
-          2. Please bring the fee card along at the time of depositing the fees for your convenience.
+        <div className="text-[10px] text-slate-600 text-center pt-2 border-t border-slate-300 leading-tight whitespace-pre-line">
+          {footerNotesText}
         </div>
       </div>
     </div>

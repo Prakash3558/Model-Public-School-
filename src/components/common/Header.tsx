@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useCMS } from '../../context/CMSContext';
+import { useAuth } from '../../context/AuthContext';
 import { EditableText } from './EditableText';
 import { EditableImage } from './EditableImage';
-import { Shield, Phone, Mail, UserCheck, GraduationCap, School, Menu, X, ShieldAlert, Moon, Sun } from 'lucide-react';
+import { Shield, Phone, Mail, UserCheck, GraduationCap, School, Menu, X, ShieldAlert, Moon, Sun, LogOut } from 'lucide-react';
 import { api } from '../../lib/api';
 
 export const Header: React.FC = React.memo(() => {
   const { settings, updateSettings } = useCMS();
+  const { user, teacher, student, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('mps_dark_mode');
@@ -63,16 +65,16 @@ export const Header: React.FC = React.memo(() => {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3 group">
-          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white text-slate-900 flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-800 flex-shrink-0 overflow-hidden p-0.5">
+          <div className="h-11 sm:h-12 max-w-[180px] rounded-xl bg-white text-slate-900 flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-800 flex-shrink-0 overflow-hidden p-1">
             {settings?.logo_url ? (
               <EditableImage
                 src={settings.logo_url}
                 alt="MPS Logo"
-                className="w-full h-full object-contain"
+                className="max-h-full max-w-full w-auto h-auto object-contain"
                 onSaveImage={(url) => updateSettings({ logo_url: url })}
               />
             ) : (
-              <School className="w-5 h-5 text-white" />
+              <School className="w-5 h-5 text-slate-800" />
             )}
           </div>
           <div>
@@ -110,35 +112,56 @@ export const Header: React.FC = React.memo(() => {
             {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-700" />}
           </button>
 
-          <a
-            href="/portal"
-            onMouseEnter={() => { api.prefetchStudents(); api.prefetchNotices(); }}
-            onFocus={() => { api.prefetchStudents(); api.prefetchNotices(); }}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-xs transition-all"
-          >
-            <GraduationCap className="w-4 h-4" />
-            <span>Student Portal</span>
-          </a>
+          {(user || teacher || student) ? (
+            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 pl-3 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                <span className="text-[10px] text-amber-500 dark:text-amber-400 font-black uppercase block">
+                  {user?.role || (teacher ? 'Teacher' : 'Student')}
+                </span>
+                {user?.name || teacher?.name || student?.name}
+              </div>
+              <button
+                onClick={logout}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs px-3 py-1.5 rounded-lg shadow-xs flex items-center gap-1 transition-all"
+                title="Logout from system"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Logout</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <a
+                href="/portal"
+                onMouseEnter={() => { api.prefetchStudents(); api.prefetchNotices(); }}
+                onFocus={() => { api.prefetchStudents(); api.prefetchNotices(); }}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-xs transition-all"
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span>Student Portal</span>
+              </a>
 
-          <a
-            href="/teacher"
-            onMouseEnter={() => { api.prefetchTeachers(); api.prefetchStudents(); }}
-            onFocus={() => { api.prefetchTeachers(); api.prefetchStudents(); }}
-            className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all"
-          >
-            <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <span>Teacher</span>
-          </a>
+              <a
+                href="/teacher"
+                onMouseEnter={() => { api.prefetchTeachers(); api.prefetchStudents(); }}
+                onFocus={() => { api.prefetchTeachers(); api.prefetchStudents(); }}
+                className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all"
+              >
+                <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <span>Teacher</span>
+              </a>
 
-          <a
-            href="/admin"
-            onMouseEnter={() => { api.prefetchTeachers(); api.prefetchAdmissions(); api.prefetchNotices(); }}
-            onFocus={() => { api.prefetchTeachers(); api.prefetchAdmissions(); api.prefetchNotices(); }}
-            className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all"
-          >
-            <ShieldAlert className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-            <span>Admin</span>
-          </a>
+              <a
+                href="/admin"
+                onMouseEnter={() => { api.prefetchTeachers(); api.prefetchAdmissions(); api.prefetchNotices(); }}
+                onFocus={() => { api.prefetchTeachers(); api.prefetchAdmissions(); api.prefetchNotices(); }}
+                className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all"
+              >
+                <ShieldAlert className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                <span>Admin</span>
+              </a>
+            </>
+          )}
         </div>
 
         {/* Mobile Controls */}

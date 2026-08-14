@@ -37,6 +37,15 @@ app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+// Global Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 // Global XSS Sanitization Middleware
 app.use((req, res, next) => {
   if (req.body && typeof req.body === 'object') {
@@ -45,7 +54,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(path.join(process.cwd(), 'public'), { maxAge: '1d', etag: true }));
 
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -1036,19 +1045,17 @@ async function loadDBFromSupabase() {
       { key: 'advanceRecords', col: 'advanceRecords' },
     ];
 
-    for (const entry of collectionsToLoad) {
-      const tableName = mapCollectionToSupabaseTable(entry.col);
-      const { data: rows } = await supabase.from(tableName).select('*');
-      if (rows && rows.length > 0) {
-        (dbData as any)[entry.key] = rows.map((r: any) => r.data || r);
-      } else if (Array.isArray((dbData as any)[entry.key])) {
-        for (const item of (dbData as any)[entry.key]) {
-          if (item && item.id) {
-            await syncItemToSupabase(entry.col, item);
-          }
+    await Promise.allSettled(collectionsToLoad.map(async (entry) => {
+      try {
+        const tableName = mapCollectionToSupabaseTable(entry.col);
+        const { data: rows } = await supabase.from(tableName).select('*');
+        if (rows && rows.length > 0) {
+          (dbData as any)[entry.key] = rows.map((r: any) => r.data || r);
         }
+      } catch (err) {
+        // Individual table load failure ignore
       }
-    }
+    }));
 
     saveDB();
     console.log('[Supabase] Persistent database sync complete!');
@@ -2086,6 +2093,19 @@ app.delete('/api/homework/:id', (req, res) => {
   res.json({ success: true });
 });
 
+app.put('/api/homework/:id', (req, res) => {
+  if (!dbData.homework) dbData.homework = [];
+  const idx = dbData.homework.findIndex(h => h.id === req.params.id);
+  if (idx !== -1) {
+    dbData.homework[idx] = { ...dbData.homework[idx], ...req.body };
+    saveDB();
+    syncHomeworkToFirestore(dbData.homework[idx]).catch(e => console.error(e));
+    res.json({ success: true, homework: dbData.homework[idx] });
+  } else {
+    res.status(404).json({ error: 'Homework not found' });
+  }
+});
+
 // Notices
 app.get('/api/notices', (req, res) => {
   res.json(dbData.notices);
@@ -2319,6 +2339,19 @@ app.delete('/api/timetable/:id', (req, res) => {
   res.json({ success: true });
 });
 
+app.put('/api/timetable/:id', (req, res) => {
+  if (!dbData.timeTable) dbData.timeTable = [];
+  const idx = dbData.timeTable.findIndex(t => t.id === req.params.id);
+  if (idx !== -1) {
+    dbData.timeTable[idx] = { ...dbData.timeTable[idx], ...req.body };
+    saveDB();
+    syncItemToFirestore('timeTable', dbData.timeTable[idx]).catch(e => console.error(e));
+    res.json({ success: true, timeTableSlot: dbData.timeTable[idx] });
+  } else {
+    res.status(404).json({ error: 'Time table slot not found' });
+  }
+});
+
 // --- STUDY MATERIAL ENDPOINTS ---
 app.get('/api/study-material', (req, res) => {
   if (!dbData.studyMaterial) dbData.studyMaterial = initialStudyMaterial;
@@ -2362,6 +2395,19 @@ app.delete('/api/study-material/:id', (req, res) => {
   res.json({ success: true });
 });
 
+app.put('/api/study-material/:id', (req, res) => {
+  if (!dbData.studyMaterial) dbData.studyMaterial = [];
+  const idx = dbData.studyMaterial.findIndex(m => m.id === req.params.id);
+  if (idx !== -1) {
+    dbData.studyMaterial[idx] = { ...dbData.studyMaterial[idx], ...req.body };
+    saveDB();
+    syncItemToFirestore('studyMaterial', dbData.studyMaterial[idx]).catch(e => console.error(e));
+    res.json({ success: true, studyMaterial: dbData.studyMaterial[idx] });
+  } else {
+    res.status(404).json({ error: 'Study material not found' });
+  }
+});
+
 // --- SCHOOL DIARY ENDPOINTS ---
 app.get('/api/school-diary', (req, res) => {
   if (!dbData.schoolDiary) dbData.schoolDiary = initialSchoolDiary;
@@ -2402,6 +2448,19 @@ app.delete('/api/school-diary/:id', (req, res) => {
   res.json({ success: true });
 });
 
+app.put('/api/school-diary/:id', (req, res) => {
+  if (!dbData.schoolDiary) dbData.schoolDiary = [];
+  const idx = dbData.schoolDiary.findIndex(d => d.id === req.params.id);
+  if (idx !== -1) {
+    dbData.schoolDiary[idx] = { ...dbData.schoolDiary[idx], ...req.body };
+    saveDB();
+    syncItemToFirestore('schoolDiary', dbData.schoolDiary[idx]).catch(e => console.error(e));
+    res.json({ success: true, diaryEntry: dbData.schoolDiary[idx] });
+  } else {
+    res.status(404).json({ error: 'School diary entry not found' });
+  }
+});
+
 // --- SYLLABUS ENDPOINTS ---
 app.get('/api/syllabus', (req, res) => {
   if (!dbData.syllabus) dbData.syllabus = initialSyllabus;
@@ -2440,6 +2499,19 @@ app.delete('/api/syllabus/:id', (req, res) => {
   saveDB();
   deleteItemFromFirestore('syllabus', req.params.id).catch(e => console.error(e));
   res.json({ success: true });
+});
+
+app.put('/api/syllabus/:id', (req, res) => {
+  if (!dbData.syllabus) dbData.syllabus = [];
+  const idx = dbData.syllabus.findIndex(s => s.id === req.params.id);
+  if (idx !== -1) {
+    dbData.syllabus[idx] = { ...dbData.syllabus[idx], ...req.body };
+    saveDB();
+    syncItemToFirestore('syllabus', dbData.syllabus[idx]).catch(e => console.error(e));
+    res.json({ success: true, syllabusItem: dbData.syllabus[idx] });
+  } else {
+    res.status(404).json({ error: 'Syllabus item not found' });
+  }
 });
 
 // --- TRANSPORT ENDPOINTS ---
@@ -2521,6 +2593,19 @@ app.delete('/api/admit-cards/:id', (req, res) => {
   res.json({ success: true });
 });
 
+app.put('/api/admit-cards/:id', (req, res) => {
+  if (!dbData.admitCards) dbData.admitCards = [];
+  const idx = dbData.admitCards.findIndex(a => a.id === req.params.id);
+  if (idx !== -1) {
+    dbData.admitCards[idx] = { ...dbData.admitCards[idx], ...req.body };
+    saveDB();
+    syncItemToFirestore('admitCards', dbData.admitCards[idx]).catch(e => console.error(e));
+    res.json({ success: true, admitCard: dbData.admitCards[idx] });
+  } else {
+    res.status(404).json({ error: 'Admit card not found' });
+  }
+});
+
 // --- DECLARATIONS ENDPOINTS ---
 app.get('/api/declarations', (req, res) => {
   if (!dbData.declarations) dbData.declarations = initialDeclarations;
@@ -2547,6 +2632,19 @@ app.delete('/api/declarations/:id', (req, res) => {
   saveDB();
   deleteItemFromFirestore('declarations', req.params.id).catch(e => console.error(e));
   res.json({ success: true });
+});
+
+app.put('/api/declarations/:id', (req, res) => {
+  if (!dbData.declarations) dbData.declarations = [];
+  const idx = dbData.declarations.findIndex(d => d.id === req.params.id);
+  if (idx !== -1) {
+    dbData.declarations[idx] = { ...dbData.declarations[idx], ...req.body };
+    saveDB();
+    syncItemToFirestore('declarations', dbData.declarations[idx]).catch(e => console.error(e));
+    res.json({ success: true, declaration: dbData.declarations[idx] });
+  } else {
+    res.status(404).json({ error: 'Declaration not found' });
+  }
 });
 
 // --- WRITE TO SCHOOL MESSAGES ENDPOINTS ---
@@ -2578,7 +2676,10 @@ app.post('/api/school-messages', (req, res) => {
     subject: req.body.subject || 'Inquiry',
     message: req.body.message || '',
     status: 'Pending',
-    date: new Date().toISOString().split('T')[0]
+    reply: req.body.reply || '',
+    date: new Date().toISOString().split('T')[0],
+    sender: req.body.sender || req.body.studentName || 'Sender',
+    senderRole: req.body.senderRole || 'Student'
   };
   dbData.schoolMessages.unshift(newMsg);
   saveDB();

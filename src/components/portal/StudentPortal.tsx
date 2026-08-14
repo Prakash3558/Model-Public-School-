@@ -1533,14 +1533,24 @@ export const StudentPortal: React.FC = () => {
                           <td className="p-3 font-bold text-slate-900 dark:text-white">{a.date}</td>
                           <td className="p-3 font-semibold text-slate-600 dark:text-slate-400">Class {a.class}-{a.section}</td>
                           <td className="p-3 font-bold">
-                            {a.status === 'Present' && <span className="text-emerald-700 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-1 rounded-lg font-black border border-emerald-300/40">✓ Present</span>}
-                            {a.status === 'Absent' && <span className="text-rose-700 bg-rose-100 dark:bg-rose-950 dark:text-rose-300 px-2.5 py-1 rounded-lg font-black border border-rose-300/40">✕ Absent</span>}
-                            {a.status === 'Late' && <span className="text-amber-700 bg-amber-100 dark:bg-amber-950 dark:text-amber-300 px-2.5 py-1 rounded-lg font-black border border-amber-300/40">⏱ Late</span>}
-                            {a.status === 'Leave' && <span className="text-blue-700 bg-blue-100 dark:bg-blue-950 dark:text-blue-300 px-2.5 py-1 rounded-lg font-black border border-blue-300/40">📄 Leave</span>}
-                            {a.status === 'Holiday' && <span className="text-purple-700 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-2.5 py-1 rounded-lg font-black border border-purple-300/40 inline-flex items-center gap-1">🌴 School Holiday</span>}
+                            {a.isPublished === false ? (
+                              <span className="text-amber-700 bg-amber-100 dark:bg-amber-950 dark:text-amber-300 px-2.5 py-1 rounded-lg font-black border border-amber-300/40">⏳ Draft / Not Published</span>
+                            ) : (
+                              <>
+                                {a.status === 'Present' && <span className="text-emerald-700 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-1 rounded-lg font-black border border-emerald-300/40">✓ Present</span>}
+                                {a.status === 'Absent' && <span className="text-rose-700 bg-rose-100 dark:bg-rose-950 dark:text-rose-300 px-2.5 py-1 rounded-lg font-black border border-rose-300/40">✕ Absent</span>}
+                                {a.status === 'Late' && <span className="text-amber-700 bg-amber-100 dark:bg-amber-950 dark:text-amber-300 px-2.5 py-1 rounded-lg font-black border border-amber-300/40">⏱ Late</span>}
+                                {a.status === 'Leave' && <span className="text-blue-700 bg-blue-100 dark:bg-blue-950 dark:text-blue-300 px-2.5 py-1 rounded-lg font-black border border-blue-300/40">📄 Leave</span>}
+                                {a.status === 'Holiday' && <span className="text-purple-700 bg-purple-100 dark:bg-purple-950 dark:text-purple-300 px-2.5 py-1 rounded-lg font-black border border-purple-300/40 inline-flex items-center gap-1">🌴 Sunday / School Holiday</span>}
+                              </>
+                            )}
                           </td>
                           <td className="p-3 text-slate-600 dark:text-slate-300 font-medium">
-                            {a.remarks || (a.status === 'Holiday' ? 'Official School Holiday' : '-')}
+                            {a.isPublished === false ? (
+                              <span className="text-amber-600 italic">Teacher has not published attendance for this date yet</span>
+                            ) : (
+                              a.remarks || (a.status === 'Holiday' ? 'Official Weekly Sunday Holiday' : '-')
+                            )}
                           </td>
                         </tr>
                       ))

@@ -79,6 +79,9 @@ export interface AttendanceRecord {
   date: string; // YYYY-MM-DD
   status: 'Present' | 'Absent' | 'Late' | 'Leave' | 'Holiday';
   remarks?: string;
+  isPublished?: boolean;
+  teacherName?: string;
+  publishedAt?: string;
 }
 
 export interface SubjectResult {
@@ -199,6 +202,10 @@ export interface SEOMetadata {
   author?: string;
   robots?: string;
   enable_schema_markup?: boolean;
+  google_adsense_id?: string;
+  google_analytics_id?: string;
+  google_search_console_id?: string;
+  enable_adsense?: boolean;
 }
 
 export interface FacultyMember {
@@ -243,6 +250,8 @@ export interface SiteSettings {
   section_order: string[];
   seo_meta?: SEOMetadata;
   receipt_accountant_name?: string;
+  udise_code?: string;
+  google_adsense_id?: string;
 }
 
 export interface OnlineClass {
@@ -326,11 +335,13 @@ export interface SyllabusItem {
 export interface TransportRoute {
   id: string;
   routeName: string;
-  busNumber: string;
-  driverName: string;
-  driverPhone: string;
-  stops: string[];
-  feeMonthly: number;
+  busNumber?: string;
+  vehicleNo?: string;
+  driverName?: string;
+  driverPhone?: string;
+  stops?: string[];
+  feeMonthly?: number;
+  fareMonthly?: number;
 }
 
 export interface AdmitCard {
@@ -361,6 +372,8 @@ export interface SchoolMessage {
   status: 'Pending' | 'Replied';
   reply?: string;
   date: string;
+  sender?: string;
+  senderRole?: 'Student' | 'Teacher' | 'Admin';
 }
 
 export interface RecordUpdateReq {

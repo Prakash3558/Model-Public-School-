@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCMS } from '../../context/CMSContext';
 import { EditableText } from './EditableText';
-import { Phone, Mail, MapPin, School } from 'lucide-react';
+import { Phone, Mail, MapPin, School, ShieldCheck } from 'lucide-react';
+import { LegalPagesModal, LegalTab } from './LegalPagesModal';
 
 export const Footer: React.FC = React.memo(() => {
   const { settings } = useCMS();
+  const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [activeLegalTab, setActiveLegalTab] = useState<LegalTab>('privacy');
+
+  const openLegalTab = (tab: LegalTab) => {
+    setActiveLegalTab(tab);
+    setLegalModalOpen(true);
+  };
 
   return (
     <footer className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs py-12 border-t border-slate-200 dark:border-slate-800 transition-colors">
@@ -12,11 +20,11 @@ export const Footer: React.FC = React.memo(() => {
         {/* Col 1 */}
         <div className="space-y-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-white text-slate-900 flex items-center justify-center font-bold overflow-hidden p-0.5 shadow-sm border border-slate-200 dark:border-slate-800 flex-shrink-0">
+            <div className="h-10 max-w-[140px] rounded-xl bg-white text-slate-900 flex items-center justify-center font-bold overflow-hidden p-1 shadow-sm border border-slate-200 dark:border-slate-800 flex-shrink-0">
               {settings?.logo_url ? (
-                <img src={settings.logo_url} alt="MPS School Logo" className="w-full h-full object-contain" />
+                <img src={settings.logo_url} alt="MPS School Logo" className="max-h-full max-w-full w-auto h-auto object-contain" />
               ) : (
-                <School className="w-4 h-4 text-white" />
+                <School className="w-4 h-4 text-slate-800" />
               )}
             </div>
             <h3 className="text-base font-black text-slate-900 dark:text-white font-heading">
@@ -26,9 +34,14 @@ export const Footer: React.FC = React.memo(() => {
           <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-body">
             <EditableText blockKey="footer.tagline" defaultText="Empowering students with academic excellence, digital skills, and moral character in Sikta, West Champaran." />
           </p>
-          <span className="inline-block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-2xs">
-            CBSE Affiliation No: {settings?.cbse_affiliation || '330854'}
-          </span>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <span className="inline-block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-2xs">
+              CBSE Affiliation No: {settings?.cbse_affiliation || '330854'}
+            </span>
+            <span className="inline-block bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-2xs">
+              UDISE: {settings?.udise_code || '10011503402'}
+            </span>
+          </div>
         </div>
 
         {/* Col 2 */}
@@ -40,16 +53,26 @@ export const Footer: React.FC = React.memo(() => {
             <li><a href="#gallery" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Photo Gallery</a></li>
             <li><a href="#fees" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Fee Structure</a></li>
             <li><a href="#admissions" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Admissions 2026</a></li>
+            <li><a href="#contact" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contact Campus</a></li>
           </ul>
         </div>
 
         {/* Col 3 */}
         <div className="space-y-2 font-medium">
-          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-heading mb-3">Portals & Login</h4>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-heading mb-3">Portals & Transparency</h4>
           <ul className="space-y-2">
             <li><a href="/portal" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-blue-600 dark:text-blue-400 font-bold">Student & Parent Portal</a></li>
             <li><a href="/teacher" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-slate-700 dark:text-slate-300">Teacher Workspace</a></li>
             <li><a href="/admin" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-slate-700 dark:text-slate-300">Admin Control Center</a></li>
+            <li className="pt-2 border-t border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => openLegalTab('disclosures')}
+                className="text-amber-600 dark:text-amber-400 hover:underline font-bold flex items-center gap-1 text-[11px]"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> CBSE Mandatory Disclosure
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -71,13 +94,42 @@ export const Footer: React.FC = React.memo(() => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 mt-10 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px]">
-        <div>
+      {/* Compliance & Legal Footer Bar */}
+      <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-wrap justify-between items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="flex flex-wrap items-center gap-3 font-medium">
+          <button type="button" onClick={() => openLegalTab('privacy')} className="hover:text-slate-900 dark:hover:text-white hover:underline">
+            Privacy Policy
+          </button>
+          <span>•</span>
+          <button type="button" onClick={() => openLegalTab('terms')} className="hover:text-slate-900 dark:hover:text-white hover:underline">
+            Terms of Use
+          </button>
+          <span>•</span>
+          <button type="button" onClick={() => openLegalTab('refund')} className="hover:text-slate-900 dark:hover:text-white hover:underline">
+            Fee & Refund Policy
+          </button>
+          <span>•</span>
+          <button type="button" onClick={() => openLegalTab('disclosures')} className="hover:text-slate-900 dark:hover:text-white hover:underline">
+            CBSE Disclosure
+          </button>
+          <span>•</span>
+          <button type="button" onClick={() => openLegalTab('disclaimer')} className="hover:text-slate-900 dark:hover:text-white hover:underline">
+            Disclaimer
+          </button>
+        </div>
+
+        <div className="text-right">
           <p>© {new Date().getFullYear()} Model Public School (MPS Sikta). All rights reserved.</p>
           <p className="text-amber-600 dark:text-amber-400 font-bold mt-0.5">Developed By Prakash Sah (2026)</p>
         </div>
-        <p>CBSE Affiliation No. {settings?.cbse_affiliation || '330854'}</p>
       </div>
+
+      {/* Legal Modal Component */}
+      <LegalPagesModal
+        isOpen={legalModalOpen}
+        initialTab={activeLegalTab}
+        onClose={() => setLegalModalOpen(false)}
+      />
     </footer>
   );
 });

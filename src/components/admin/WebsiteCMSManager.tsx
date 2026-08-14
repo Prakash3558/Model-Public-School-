@@ -1676,8 +1676,14 @@ export const WebsiteCMSManager: React.FC = () => {
           });
         };
 
+        const adsenseVal = settings.seo_meta?.google_adsense_id || settings.google_adsense_id || 'ca-pub-0000000000000000';
+        const analyticsVal = settings.seo_meta?.google_analytics_id || '';
+        const searchConsoleVal = settings.seo_meta?.google_search_console_id || '';
+        const enableAdsenseVal = settings.seo_meta?.enable_adsense ?? true;
+
         const handlePublishSeo = () => {
           updateSettings({
+            google_adsense_id: adsenseVal,
             seo_meta: {
               meta_title: titleVal,
               meta_description: descVal,
@@ -1686,10 +1692,14 @@ export const WebsiteCMSManager: React.FC = () => {
               canonical_url: canonicalVal,
               author: authorVal,
               robots: robotsVal,
-              enable_schema_markup: schemaVal
+              enable_schema_markup: schemaVal,
+              google_adsense_id: adsenseVal,
+              google_analytics_id: analyticsVal,
+              google_search_console_id: searchConsoleVal,
+              enable_adsense: enableAdsenseVal
             }
           });
-          showNotification('SEO Meta Tags Saved & Published Live!');
+          showNotification('SEO & AdSense Meta Tags Saved & Published Live!');
         };
 
         return (
@@ -1909,13 +1919,61 @@ export const WebsiteCMSManager: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/30 space-y-3">
+                    <h4 className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <DollarSign className="w-3.5 h-3.5" /> Google AdSense & Search Verification
+                    </h4>
+
+                    <div>
+                      <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1 flex justify-between">
+                        <span>Google AdSense Publisher ID</span>
+                        <span className="text-[10px] text-slate-400 font-normal">Format: ca-pub-XXXXXXXXXXXXXXXX</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={adsenseVal}
+                        onChange={e => handleSeoChange('google_adsense_id', e.target.value)}
+                        placeholder="ca-pub-0000000000000000"
+                        className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                          Google Search Console Meta Key
+                        </label>
+                        <input
+                          type="text"
+                          value={searchConsoleVal}
+                          onChange={e => handleSeoChange('google_search_console_id', e.target.value)}
+                          placeholder="e.g. google-site-verification-code"
+                          className="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                          Google Analytics (G-Tag ID)
+                        </label>
+                        <input
+                          type="text"
+                          value={analyticsVal}
+                          onChange={e => handleSeoChange('google_analytics_id', e.target.value)}
+                          placeholder="e.g. G-XXXXXXXXXX"
+                          className="w-full p-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-slate-900 dark:text-white font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="pt-2">
                     <button
                       type="button"
                       onClick={handlePublishSeo}
                       className="w-full bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 font-extrabold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm shadow-md transition-all cursor-pointer"
                     >
-                      <Save className="w-4 h-4" /> Save & Publish SEO Meta Tags
+                      <Save className="w-4 h-4" /> Save & Publish SEO & AdSense Settings
                     </button>
                   </div>
                 </div>

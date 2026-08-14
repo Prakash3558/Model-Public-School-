@@ -165,9 +165,10 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
         "name": data.school_name || "Model Public School",
-        "alternateName": "MPS Sikta",
+        "alternateName": ["MPS Sikta", "Model Public School Bhawanipur"],
         "url": canonical,
         "logo": image,
+        "image": image,
         "description": description,
         "address": {
           "@type": "PostalAddress",
@@ -177,13 +178,58 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           "postalCode": "845307",
           "addressCountry": "IN"
         },
-        "telephone": data.phones || "+91 9876543210",
-        "email": data.email || "info@mpssikta.edu.in",
+        "telephone": data.phones || "+91 8757968130",
+        "email": data.email || "modelpublicschool@gmail.com",
         "sameAs": [
           "https://maps.google.com/?q=Model+Public+School+Bhawanipur+Sikta+West+Champaran+Bihar"
         ]
       };
       script.text = JSON.stringify(schemaData);
+    }
+
+    // Google Search Console Verification
+    if (seo.google_search_console_id) {
+      setMetaTag('meta[name="google-site-verification"]', 'name', 'google-site-verification', seo.google_search_console_id);
+    }
+
+    // Google AdSense Account Verification Meta Tag & Script
+    const adsenseId = seo.google_adsense_id || data.google_adsense_id;
+    if (adsenseId) {
+      setMetaTag('meta[name="google-adsense-account"]', 'name', 'google-adsense-account', adsenseId);
+      
+      const adsenseScriptId = 'google-adsense-script';
+      let adsenseScript = document.getElementById(adsenseScriptId) as HTMLScriptElement;
+      if (!adsenseScript && seo.enable_adsense !== false) {
+        adsenseScript = document.createElement('script');
+        adsenseScript.id = adsenseScriptId;
+        adsenseScript.async = true;
+        adsenseScript.crossOrigin = 'anonymous';
+        adsenseScript.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseId)}`;
+        document.head.appendChild(adsenseScript);
+      }
+    }
+
+    // Google Analytics (gtag.js)
+    if (seo.google_analytics_id) {
+      const gtagScriptId = 'google-analytics-gtag';
+      let gtagScript = document.getElementById(gtagScriptId) as HTMLScriptElement;
+      if (!gtagScript) {
+        gtagScript = document.createElement('script');
+        gtagScript.id = gtagScriptId;
+        gtagScript.async = true;
+        gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(seo.google_analytics_id)}`;
+        document.head.appendChild(gtagScript);
+
+        const inlineGtag = document.createElement('script');
+        inlineGtag.id = 'google-analytics-init';
+        inlineGtag.text = `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${seo.google_analytics_id}');
+        `;
+        document.head.appendChild(inlineGtag);
+      }
     }
   }, []);
 
@@ -208,11 +254,31 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 10000) {
           return;
         }
+        // Preserve any recent local changes stored in localStorage
+        const localSaved = localStorage.getItem(LOCAL_STORAGE_KEY);
+        let mergedData = data;
+        if (localSaved) {
+          try {
+            const localParsed = JSON.parse(localSaved);
+            mergedData = {
+              ...data,
+              ...localParsed,
+              content_blocks: {
+                ...(data.content_blocks || {}),
+                ...(localParsed.content_blocks || {})
+              },
+              theme_colors: {
+                ...(data.theme_colors || {}),
+                ...(localParsed.theme_colors || {})
+              }
+            };
+          } catch (e) {}
+        }
         setSettings(prev => {
-          if (prev && JSON.stringify(prev) === JSON.stringify(data)) {
+          if (prev && JSON.stringify(prev) === JSON.stringify(mergedData)) {
             return prev;
           }
-          return data;
+          return mergedData;
         });
       }
     } catch (e) {
@@ -296,11 +362,18 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }, 30000);
 
     // 3. Refresh whenever window regains focus or visibility
-    const handleFocus = () => fetchSettings(true);
-    const handleVisibilityChange = () => {
-      if (!document.hidden) fetchSettings(true);
+    const handleFocus = () => {
+      setTimeout(() => fetchSettings(true), 0);
     };
-    const handleCustomUpdate = () => fetchSettings(true);
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        setTimeout(() => fetchSettings(true), 0);
+      }
+    };
+    const handleCustomUpdate = () => {
+      if (Date.now() - lastLocalEditTimeRef.current < 3000) return;
+      setTimeout(() => fetchSettings(true), 0);
+    };
 
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -365,6 +438,9 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (nextSettings) {
       const target = nextSettings as SiteSettings;
+      saveToLocalStorage(target);
+      setTimeout(() => window.dispatchEvent(new Event('mps_settings_updated')), 0);
+
       // Direct Supabase upsert for client-side persistence
       try {
         const payload = JSON.parse(JSON.stringify(target));
@@ -414,6 +490,10 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (nextSettings) {
+      const target = nextSettings as SiteSettings;
+      saveToLocalStorage(target);
+      setTimeout(() => window.dispatchEvent(new Event('mps_settings_updated')), 0);
+
       try {
         const res = await api.updateContentBlock(key, value);
         setSyncStatus('saved');

@@ -71,10 +71,18 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
     { classGroup: 'Class 11 - 12 (Sci / Comm / Arts)', admissionFee: 5000, monthlyTuition: 1800, annualCharges: 3500, examFee: 1200, transportFee: 1200, hostelFee: 5500 }
   ]);
   const [feeSaveMsg, setFeeSaveMsg] = useState('');
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState('');
 
   // Staff Salary State
   const [staffSalaries, setStaffSalaries] = useState<{ [teacherId: string]: number }>({});
   const [staffSaveMsg, setStaffSaveMsg] = useState('');
+
+  // WhatsApp Alert & Reminder States
+  const [previewStudentForWhatsApp, setPreviewStudentForWhatsApp] = useState<Student | null>(null);
+  const [customWhatsAppMsg, setCustomWhatsAppMsg] = useState('');
+  const [dueAlertFilterClass, setDueAlertFilterClass] = useState('All');
+  const [dueAlertSearch, setDueAlertSearch] = useState('');
+  const [copiedMsg, setCopiedMsg] = useState(false);
 
   useEffect(() => {
     if (teachers && teachers.length > 0) {
@@ -566,23 +574,71 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
     setSelectedStudentForPay(null);
   };
 
-  // Send Parent Fee Due Alert
-  const handleSendParentAlert = (st: Student) => {
+  // Helper to format WhatsApp phone number (strip spaces/dashes, ensure Indian country code 91 if 10 digits)
+  const formatWhatsAppNumber = (phoneStr?: string) => {
+    if (!phoneStr) return '918757968130';
+    let digits = phoneStr.replace(/\D/g, '');
+    if (digits.length === 10) {
+      digits = '91' + digits;
+    }
+    return digits;
+  };
+
+  // Helper to generate structured official WhatsApp fee reminder text
+  const generateFeeDueWhatsAppText = (st: Student) => {
+    const schoolName = settings?.school_name || 'Model Public School';
+    const dueAmount = st.feeInfo?.pending || 3500;
+    const dueDate = '15th ' + new Date().toLocaleString('en-US', { month: 'short' }) + ', ' + new Date().getFullYear();
+    const helpline = settings?.phones || '+91 87579 68130';
+    
+    return `🏫 *${schoolName.toUpperCase()} (MPS SIKTA)*\n` +
+      `📢 *FEE DUE NOTIFICATION & GENTLE REMINDER*\n\n` +
+      `Dear Parent / Guardian,\n` +
+      `This is a gentle reminder regarding the pending academic fee for your ward:\n\n` +
+      `👤 *Student Name:* ${st.name}\n` +
+      `🎓 *Class & Section:* Class ${st.class}-${st.section || 'A'}\n` +
+      `🔢 *Roll Number:* ${st.rollNo || 'N/A'}\n` +
+      `💰 *Pending Amount Due:* ₹${dueAmount.toLocaleString('en-IN')}\n` +
+      `📅 *Due Date:* ${dueDate}\n\n` +
+      `Kindly deposit the outstanding amount at the school accounts desk or via online portal at your earliest convenience to ensure uninterrupted academic sessions.\n\n` +
+      `📞 *Accounts Helpline:* ${helpline}\n` +
+      `📍 *Campus:* Bhawanipur, Sikta, West Champaran (Bihar - 845307)\n` +
+      `_Thank you for your cooperation!_`;
+  };
+
+  // Open Preview Modal before sending
+  const handleOpenWhatsAppPreview = (st: Student) => {
+    setPreviewStudentForWhatsApp(st);
+    setCustomWhatsAppMsg(generateFeeDueWhatsAppText(st));
+    setCopiedMsg(false);
+  };
+
+  // Send Parent Fee Due Alert via WhatsApp Web / App
+  const handleSendParentAlert = (st: Student, customText?: string) => {
+    const phone = formatWhatsAppNumber(st.phone);
+    const text = customText || generateFeeDueWhatsAppText(st);
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://wa.me/${phone}?text=${encodedText}`;
+
+    // Open WhatsApp Web or Mobile Client
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
     const newLog: FeeAlertLog = {
       id: `alt-${Date.now()}`,
       studentId: st.id,
       studentName: st.name,
-      class: `${st.class}-${st.section}`,
+      class: `${st.class}-${st.section || 'A'}`,
       phone: st.phone || '+91 8757968130',
       amountDue: st.feeInfo?.pending || 3500,
       dueDate: '15th ' + new Date().toLocaleString('en-US', { month: 'short' }),
       alertType: 'WhatsApp',
       sentAt: new Date().toLocaleString(),
       status: 'Delivered',
-      messageText: `Dear Parent, gentle reminder that fee of ₹${st.feeInfo?.pending || 3500} for ${st.name} (Class ${st.class}) is due before 15th. Kindly deposit at school counter or online.`
+      messageText: text
     };
     setAlertLogs([newLog, ...alertLogs]);
-    alert(`Instant Fee Due Alert sent to parent of ${st.name} (${st.phone}) via WhatsApp!`);
+    setSaveSuccessMsg(`WhatsApp reminder dispatched for ${st.name} (${st.phone || '+91 8757968130'})!`);
+    setTimeout(() => setSaveSuccessMsg(''), 4000);
   };
 
   return (
@@ -1479,8 +1535,40 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
                   value={receiptTemplate.footerNotes}
                   onChange={e => setReceiptTemplate({ ...receiptTemplate, footerNotes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-xs"
                 />
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem('mps_receipt_template', JSON.stringify(receiptTemplate));
+                    if (onUpdateSettings && settings) {
+                      onUpdateSettings({
+                        ...settings,
+                        school_name: receiptTemplate.headerTitle || settings.school_name,
+                        contact_address: receiptTemplate.addressText || settings.contact_address,
+                        receipt_accountant_name: receiptTemplate.accountantName || settings.receipt_accountant_name,
+                        udise_code: receiptTemplate.udiseCode || settings.udise_code
+                      });
+                    }
+                    setSaveSuccessMsg('✓ Receipt template & custom credentials saved successfully!');
+                    setTimeout(() => setSaveSuccessMsg(''), 4000);
+                  }}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md flex items-center gap-2 transition-all"
+                >
+                  <Check className="w-4 h-4" /> Save Receipt Template
+                </button>
+                {saveSuccessMsg ? (
+                  <span className="text-xs text-emerald-700 dark:text-emerald-300 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> {saveSuccessMsg}
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Auto-syncs live preview
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1496,6 +1584,15 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
               }}
               settings={settings}
               selectedMonth="August, 2026"
+              accountantName={receiptTemplate.accountantName || settings?.receipt_accountant_name || 'Sandeep'}
+              templateOverrides={{
+                headerTitle: receiptTemplate.headerTitle,
+                headerSubtitle: receiptTemplate.headerSubtitle,
+                addressText: receiptTemplate.addressText,
+                footerNotes: receiptTemplate.footerNotes,
+                udiseCode: receiptTemplate.udiseCode,
+                affiliationText: receiptTemplate.affiliationText,
+              }}
             />
           </div>
         </div>
@@ -1686,50 +1783,204 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
       )}
 
       {/* ==================== SUB TAB 7: PARENT FEE DUE REMINDERS ==================== */}
-      {activeTab === 'due_alerts' && (
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white font-heading flex items-center gap-2">
-                <Bell className="w-5 h-5 text-amber-500" /> Parent Fee Due Alerts & Reminders
-              </h3>
-              <p className="text-xs text-slate-500">Send instant WhatsApp or SMS reminders to parents with outstanding dues</p>
+      {activeTab === 'due_alerts' && (() => {
+        const unpaidStudents = students.filter(s => (s.feeInfo?.pending || 0) > 0);
+        const filteredUnpaid = unpaidStudents.filter(st => {
+          const matchClass = dueAlertFilterClass === 'All' || String(st.class) === dueAlertFilterClass;
+          const matchSearch = !dueAlertSearch ||
+            st.name.toLowerCase().includes(dueAlertSearch.toLowerCase()) ||
+            (st.phone && st.phone.includes(dueAlertSearch)) ||
+            (st.rollNo && st.rollNo.toLowerCase().includes(dueAlertSearch.toLowerCase()));
+          return matchClass && matchSearch;
+        });
+
+        const totalUnpaidRupees = unpaidStudents.reduce((acc, s) => acc + (s.feeInfo?.pending || 0), 0);
+        const availableClasses = Array.from(new Set(students.map(s => String(s.class)))).sort((a, b) => Number(a) - Number(b));
+
+        return (
+          <div className="space-y-6">
+            {/* Top Stat Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Unpaid Students</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">{unpaidStudents.length} Students</div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+                  <DollarSign className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Pending Dues</div>
+                  <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">₹{totalUnpaidRupees.toLocaleString('en-IN')}</div>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                  <Send className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">WhatsApp Reminders Dispatched</div>
+                  <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">{alertLogs.length} Sent</div>
+                </div>
+              </div>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px]">
-                  <tr>
-                    <th className="p-3.5">Student Name</th>
-                    <th className="p-3.5">Class</th>
-                    <th className="p-3.5">Parent Contact</th>
-                    <th className="p-3.5">Amount Due</th>
-                    <th className="p-3.5 text-right">Send Alert</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-medium">
-                  {students.filter(s => (s.feeInfo?.pending || 0) > 0).map(st => (
-                    <tr key={st.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="p-3.5 font-bold text-slate-900 dark:text-white">{st.name}</td>
-                      <td className="p-3.5 text-indigo-600 dark:text-indigo-400 font-bold">Class {st.class}-{st.section}</td>
-                      <td className="p-3.5 text-slate-600 dark:text-slate-400">{st.phone || '+91 8757968130'}</td>
-                      <td className="p-3.5 font-extrabold text-rose-600 dark:text-rose-400">₹{st.feeInfo?.pending || 3500}</td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          onClick={() => handleSendParentAlert(st)}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs flex items-center gap-1 ml-auto shadow-sm"
-                        >
-                          <Send className="w-3.5 h-3.5" /> WhatsApp Alert
-                        </button>
-                      </td>
+            {/* Main Alert Dispatcher Table */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white font-heading flex items-center gap-2">
+                    <Bell className="w-5 h-5 text-emerald-500" /> WhatsApp Fee Due Alert Manager
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Dispatches personalized official reminders directly to parent WhatsApp phone numbers with fee amount, roll number, and online payment details.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Class Filter */}
+                  <select
+                    value={dueAlertFilterClass}
+                    onChange={e => setDueAlertFilterClass(e.target.value)}
+                    className="p-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-slate-800 dark:text-white"
+                  >
+                    <option value="All">All Classes ({unpaidStudents.length})</option>
+                    {availableClasses.map(c => (
+                      <option key={c} value={c}>Class {c}</option>
+                    ))}
+                  </select>
+
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      placeholder="Search student or phone..."
+                      value={dueAlertSearch}
+                      onChange={e => setDueAlertSearch(e.target.value)}
+                      className="pl-8 pr-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-slate-800 dark:text-white w-48"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase text-[11px]">
+                    <tr>
+                      <th className="p-3.5">Student Details</th>
+                      <th className="p-3.5">Class & Roll</th>
+                      <th className="p-3.5">Parent Contact No.</th>
+                      <th className="p-3.5">Pending Dues</th>
+                      <th className="p-3.5">Fee Status</th>
+                      <th className="p-3.5 text-right">Send Notification</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-medium">
+                    {filteredUnpaid.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="p-8 text-center text-slate-400">
+                          <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                          No pending fee records found for this filter criteria!
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUnpaid.map(st => (
+                        <tr key={st.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="p-3.5 font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-[11px]">
+                              {st.name.charAt(0)}
+                            </div>
+                            <span>{st.name}</span>
+                          </td>
+                          <td className="p-3.5 text-indigo-600 dark:text-indigo-400 font-bold">
+                            Class {st.class}-{st.section || 'A'} <span className="text-slate-400 text-[10px] font-normal">({st.rollNo ? `Roll: ${st.rollNo}` : 'ID: ' + st.id})</span>
+                          </td>
+                          <td className="p-3.5 text-slate-700 dark:text-slate-300 font-mono">
+                            {st.phone || '+91 87579 68130'}
+                          </td>
+                          <td className="p-3.5 font-extrabold text-rose-600 dark:text-rose-400 text-sm">
+                            ₹{(st.feeInfo?.pending || 3500).toLocaleString('en-IN')}
+                          </td>
+                          <td className="p-3.5">
+                            <span className="px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 text-[10px] font-extrabold border border-rose-200 dark:border-rose-800">
+                              Payment Overdue
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenWhatsAppPreview(st)}
+                                className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-[11px] flex items-center gap-1 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+                                title="Preview & Customize Message Text"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" /> Customize
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSendParentAlert(st)}
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                                title="Open WhatsApp Directly"
+                              >
+                                <Send className="w-3.5 h-3.5" /> WhatsApp Alert
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            {/* Alert Logs & Sent History */}
+            {alertLogs.length > 0 && (
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-slate-400" /> Recent WhatsApp Reminder Logs
+                  </h4>
+                  <span className="text-xs text-slate-400">{alertLogs.length} total logged records</span>
+                </div>
+
+                <div className="space-y-2">
+                  {alertLogs.slice(0, 5).map(log => (
+                    <div key={log.id} className="p-3 bg-stone-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <span className="font-bold text-slate-900 dark:text-white">{log.studentName}</span>
+                          <span className="text-slate-400 ml-1.5">({log.class})</span>
+                          <span className="text-slate-500 font-mono text-[11px] ml-2">{log.phone}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 self-end sm:self-auto">
+                        <span className="font-extrabold text-rose-600 dark:text-rose-400">₹{log.amountDue}</span>
+                        <span className="text-[11px] text-slate-400">{log.sentAt}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
+                          {log.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ==================== SUB TAB 8: FINANCIAL REPORTS ==================== */}
       {activeTab === 'reports' && (
@@ -2166,6 +2417,15 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
                 recId={activeReceiptForModal.receiptNo}
                 dateStr={activeReceiptForModal.date}
                 paidVia={activeReceiptForModal.paymentMode}
+                accountantName={activeReceiptForModal.accountantName || receiptTemplate.accountantName || settings?.receipt_accountant_name || 'Sandeep'}
+                templateOverrides={{
+                  headerTitle: receiptTemplate.headerTitle,
+                  headerSubtitle: receiptTemplate.headerSubtitle,
+                  addressText: receiptTemplate.addressText,
+                  footerNotes: receiptTemplate.footerNotes,
+                  udiseCode: receiptTemplate.udiseCode,
+                  affiliationText: receiptTemplate.affiliationText,
+                }}
               />
             </div>
 
@@ -2294,6 +2554,110 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm"
               >
                 Save Transaction
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ==================== MODAL: WHATSAPP FEE DUE REMINDER PREVIEW & SENDER ==================== */}
+      {previewStudentForWhatsApp && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4 text-xs my-8 animate-in fade-in zoom-in-95">
+            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                  <Send className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">Personalized WhatsApp Fee Alert</h3>
+                  <p className="text-slate-500 text-xs">Review or edit the message text before sending to parent</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewStudentForWhatsApp(null)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Target Student Info Card */}
+            <div className="p-3.5 bg-emerald-50/50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200/60 dark:border-emerald-800/40 flex items-center justify-between">
+              <div>
+                <div className="font-bold text-slate-900 dark:text-white text-sm">{previewStudentForWhatsApp.name}</div>
+                <div className="text-slate-500 text-xs mt-0.5">
+                  Class {previewStudentForWhatsApp.class}-{previewStudentForWhatsApp.section || 'A'} • Roll: {previewStudentForWhatsApp.rollNo || 'N/A'}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] uppercase font-bold text-slate-400">Total Dues</div>
+                <div className="text-base font-extrabold text-rose-600 dark:text-rose-400">
+                  ₹{(previewStudentForWhatsApp.feeInfo?.pending || 3500).toLocaleString('en-IN')}
+                </div>
+              </div>
+            </div>
+
+            {/* Target WhatsApp Number */}
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
+                Parent WhatsApp Number
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={previewStudentForWhatsApp.phone || '+91 8757968130'}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-xs font-bold"
+                />
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap bg-emerald-50 dark:bg-emerald-950 px-2 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  Target URL Ready
+                </span>
+              </div>
+            </div>
+
+            {/* Message Body Editor */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold">
+                  WhatsApp Message Text (Editable)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(customWhatsAppMsg);
+                    setCopiedMsg(true);
+                    setTimeout(() => setCopiedMsg(false), 2000);
+                  }}
+                  className="text-[11px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold"
+                >
+                  {copiedMsg ? '✓ Copied!' : 'Copy Text'}
+                </button>
+              </div>
+              <textarea
+                rows={9}
+                value={customWhatsAppMsg}
+                onChange={e => setCustomWhatsAppMsg(e.target.value)}
+                className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-sans text-xs leading-relaxed focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setPreviewStudentForWhatsApp(null)}
+                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleSendParentAlert(previewStudentForWhatsApp, customWhatsAppMsg);
+                  setPreviewStudentForWhatsApp(null);
+                }}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-xl font-bold flex items-center gap-2 shadow-md transition-all cursor-pointer"
+              >
+                <Send className="w-4 h-4" /> Open in WhatsApp & Send
               </button>
             </div>
           </div>
