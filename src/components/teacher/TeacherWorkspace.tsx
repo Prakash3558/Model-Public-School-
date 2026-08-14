@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCMS } from '../../context/CMSContext';
-import { api, defaultTeachers } from '../../lib/api';
+import { api } from '../../lib/api';
 import { downloadElementAsPDF } from '../../lib/pdf';
 import {
   Teacher, Student, AttendanceRecord, ExamResult, Homework, OnlineClass, OnlineExam,
@@ -278,31 +278,10 @@ export const TeacherWorkspace: React.FC = () => {
       if (res.success && res.teacher) {
         loginUser({ user: res.user, teacher: res.teacher });
       } else {
-        // Fallback for custom hosting
-        const fallbackTeacher = defaultTeachers[0];
-        loginUser({
-          user: {
-            id: fallbackTeacher.userId,
-            username: loginForm.username.trim() || fallbackTeacher.username,
-            role: 'teacher',
-            name: fallbackTeacher.name,
-            email: fallbackTeacher.email
-          },
-          teacher: fallbackTeacher
-        });
+        setLoginError(res.message || 'Invalid teacher username or password.');
       }
-    } catch (err) {
-      const fallbackTeacher = defaultTeachers[0];
-      loginUser({
-        user: {
-          id: fallbackTeacher.userId,
-          username: loginForm.username.trim() || fallbackTeacher.username,
-          role: 'teacher',
-          name: fallbackTeacher.name,
-          email: fallbackTeacher.email
-        },
-        teacher: fallbackTeacher
-      });
+    } catch (err: any) {
+      setLoginError(err.message || 'Failed to authenticate. Please verify your credentials and connection.');
     } finally {
       setLoginLoading(false);
     }
@@ -742,30 +721,6 @@ export const TeacherWorkspace: React.FC = () => {
               >
                 {loginLoading ? 'Authenticating...' : 'Sign In To Teacher Workspace'}
               </button>
-
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const fallbackTeacher = defaultTeachers[0];
-                    setLoginForm({ username: 'teacher1', phone: '', password: 'teacher123' });
-                    setLoginError('');
-                    loginUser({
-                      user: {
-                        id: fallbackTeacher.userId,
-                        username: fallbackTeacher.username,
-                        role: 'teacher',
-                        name: fallbackTeacher.name,
-                        email: fallbackTeacher.email
-                      },
-                      teacher: fallbackTeacher
-                    });
-                  }}
-                  className="w-full py-2.5 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-amber-200 rounded-xl border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <span>⚡ One-Click Instant Teacher Access (<strong className="text-white">teacher1 / teacher123</strong>)</span>
-                </button>
-              </div>
             </form>
           </div>
         </div>

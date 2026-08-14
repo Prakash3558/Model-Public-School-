@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCMS } from '../../context/CMSContext';
-import { api, defaultStudents } from '../../lib/api';
+import { api } from '../../lib/api';
 import { CountryPhoneInput, detectUserCountryCode, fetchUserCountryCodeFromIP } from '../common/CountryPhoneInput';
 import {
   Student, Homework, AttendanceRecord, ExamResult, Notice,
@@ -203,30 +203,10 @@ export const StudentPortal: React.FC = () => {
       if (res.success && res.student) {
         loginUser({ user: res.user, student: res.student });
       } else {
-        const fallbackStudent = defaultStudents[0];
-        loginUser({
-          user: {
-            id: fallbackStudent.userId,
-            username: fallbackStudent.rollNo,
-            role: 'student',
-            name: loginForm.studentName.trim() || fallbackStudent.name,
-            email: fallbackStudent.email
-          },
-          student: fallbackStudent
-        });
+        setLoginError(res.message || 'Invalid student credentials. Please verify your details.');
       }
-    } catch (err) {
-      const fallbackStudent = defaultStudents[0];
-      loginUser({
-        user: {
-          id: fallbackStudent.userId,
-          username: fallbackStudent.rollNo,
-          role: 'student',
-          name: loginForm.studentName.trim() || fallbackStudent.name,
-          email: fallbackStudent.email
-        },
-        student: fallbackStudent
-      });
+    } catch (err: any) {
+      setLoginError(err.message || 'Failed to authenticate. Please verify your credentials and connection.');
     } finally {
       setLoginLoading(false);
     }
@@ -451,38 +431,6 @@ export const StudentPortal: React.FC = () => {
               >
                 {loginLoading ? 'Authenticating Credentials...' : 'Sign In To Student Portal'}
               </button>
-
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const fallbackStudent = defaultStudents[0];
-                    setLoginForm({
-                      studentName: 'Rahul Kumar',
-                      className: '10',
-                      section: 'A',
-                      rollNo: '1001',
-                      phone: '9876543210',
-                      password: 'student123'
-                    });
-                    setSelectedCountryCode('+91');
-                    setLoginError('');
-                    loginUser({
-                      user: {
-                        id: fallbackStudent.userId,
-                        username: fallbackStudent.rollNo,
-                        role: 'student',
-                        name: fallbackStudent.name,
-                        email: fallbackStudent.email
-                      },
-                      student: fallbackStudent
-                    });
-                  }}
-                  className="w-full py-2.5 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-amber-200 rounded-xl border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <span>⚡ One-Click Instant Student Access (<strong className="text-white">Rahul Kumar, Class 10-A</strong>)</span>
-                </button>
-              </div>
             </form>
 
             <div className="pt-4 border-t border-slate-800 text-center">

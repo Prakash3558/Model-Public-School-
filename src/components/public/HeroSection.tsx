@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useCMS } from '../../context/CMSContext';
 import { EditableText } from '../common/EditableText';
 import { EditableImage } from '../common/EditableImage';
-import { ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Bookmark, Download, Smartphone } from 'lucide-react';
 import { motion } from 'motion/react';
 import { ThreeDHeroCanvas } from '../common/ThreeDHeroCanvas';
+import { AppDownloadModal } from '../common/AppDownloadModal';
 
 export const HeroSection: React.FC = React.memo(() => {
   const { settings, updateSettings } = useCMS();
   const slides = settings?.hero_slides || [];
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
@@ -176,7 +178,7 @@ export const HeroSection: React.FC = React.memo(() => {
         </div>
 
         {/* Vertical Centered Pill Buttons Stack (Exact color match from screenshot) */}
-        <div className="flex flex-col items-center justify-center gap-3.5 w-full max-w-xs pt-2">
+        <div className="flex flex-col items-center justify-center gap-3 w-full max-w-xs pt-2">
           {/* Top Golden/Amber Pill Button */}
           <a
             href="#admissions"
@@ -185,10 +187,20 @@ export const HeroSection: React.FC = React.memo(() => {
             Apply for Admission
           </a>
 
+          {/* Student App Download Action Button */}
+          <button
+            type="button"
+            onClick={() => setDownloadModalOpen(true)}
+            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base py-3.5 px-6 rounded-full shadow-xl text-center transition-all transform hover:scale-[1.02] active:scale-100 flex items-center justify-center gap-2 border border-blue-400/40"
+          >
+            <Download className="w-5 h-5 text-amber-300" />
+            <span>Download School App</span>
+          </button>
+
           {/* Middle Deep Emerald Green Pill Button */}
           <a
             href="/portal"
-            className="w-full bg-[#0d5c3a] hover:bg-[#09472d] text-white font-bold text-base py-3.5 px-8 rounded-full shadow-lg text-center transition-all transform hover:scale-[1.02] active:scale-100"
+            className="w-full bg-[#0d5c3a] hover:bg-[#09472d] text-white font-bold text-base py-3 px-8 rounded-full shadow-lg text-center transition-all transform hover:scale-[1.02] active:scale-100"
           >
             Student Login
           </a>
@@ -196,12 +208,18 @@ export const HeroSection: React.FC = React.memo(() => {
           {/* Bottom Glass Outline Pill Button */}
           <a
             href="#facilities"
-            className="w-full bg-white/15 hover:bg-white/25 border border-white/40 text-white font-bold text-base py-3.5 px-8 rounded-full shadow-md backdrop-blur-md text-center transition-all transform hover:scale-[1.02] active:scale-100"
+            className="w-full bg-white/15 hover:bg-white/25 border border-white/40 text-white font-bold text-sm py-2.5 px-8 rounded-full shadow-md backdrop-blur-md text-center transition-all transform hover:scale-[1.02] active:scale-100"
           >
             Explore Campus
           </a>
         </div>
       </div>
+
+      {/* App Download Modal */}
+      <AppDownloadModal
+        isOpen={downloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+      />
 
       {/* BOTTOM SLIDE DOTS / INDICATOR (Matches screenshot bottom indicators) */}
       {!hasCustomVideo && slides.length > 1 && (

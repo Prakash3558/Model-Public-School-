@@ -22,6 +22,7 @@ const ThreeDSolarSystem = React.lazy(() => import('./components/common/ThreeDSol
 const TeacherWorkspace = React.lazy(() => import('./components/teacher/TeacherWorkspace').then(m => ({ default: m.TeacherWorkspace })));
 const AdminControlCenter = React.lazy(() => import('./components/admin/AdminControlCenter').then(m => ({ default: m.AdminControlCenter })));
 const StudentPortal = React.lazy(() => import('./components/portal/StudentPortal').then(m => ({ default: m.StudentPortal })));
+const StudentAppShell = React.lazy(() => import('./components/portal/StudentAppShell').then(m => ({ default: m.StudentAppShell })));
 const FloatingAIWidget = React.lazy(() => import('./components/common/FloatingAIWidget').then(m => ({ default: m.FloatingAIWidget })));
 
 const PageLoader = () => (
@@ -33,6 +34,11 @@ const PageLoader = () => (
 export default function App() {
   const [route, setRoute] = useState<string>(() => {
     const path = window.location.pathname;
+    const search = window.location.search;
+    const isStandalone = typeof window !== 'undefined' && ((window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches);
+    if (path.startsWith('/app') || path.startsWith('/student-app') || search.includes('mode=student-app') || search.includes('app=student') || (isStandalone && !path.startsWith('/admin') && !path.startsWith('/teacher'))) {
+      return 'student-app';
+    }
     if (path.startsWith('/teacher')) return 'teacher';
     if (path.startsWith('/admin')) return 'admin';
     if (path.startsWith('/portal')) return 'portal';
@@ -49,7 +55,12 @@ export default function App() {
 
     const handlePopState = () => {
       const path = window.location.pathname;
-      if (path.startsWith('/teacher')) setRoute('teacher');
+      const search = window.location.search;
+      const isStandalone = (window.navigator as any).standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+      if (path.startsWith('/app') || path.startsWith('/student-app') || search.includes('mode=student-app') || search.includes('app=student') || (isStandalone && !path.startsWith('/admin') && !path.startsWith('/teacher'))) {
+        setRoute('student-app');
+      }
+      else if (path.startsWith('/teacher')) setRoute('teacher');
       else if (path.startsWith('/admin')) setRoute('admin');
       else if (path.startsWith('/portal')) setRoute('portal');
       else setRoute('public');
@@ -67,7 +78,11 @@ export default function App() {
             {route === 'public' ? <PublicHomepageBackground /> : <FallingStarsCanvas />}
           </Suspense>
 
-          {route === 'teacher' ? (
+          {route === 'student-app' ? (
+            <Suspense fallback={<PageLoader />}>
+              <StudentAppShell />
+            </Suspense>
+          ) : route === 'teacher' ? (
             <div>
               <Header />
               <Suspense fallback={<PageLoader />}>
@@ -114,7 +129,7 @@ export default function App() {
             </div>
           )}
 
-          {route === 'portal' && (
+          {(route === 'portal' || route === 'student-app') && (
             <Suspense fallback={null}>
               <FloatingAIWidget />
             </Suspense>

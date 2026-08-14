@@ -3,13 +3,15 @@ import { useCMS } from '../../context/CMSContext';
 import { useAuth } from '../../context/AuthContext';
 import { EditableText } from './EditableText';
 import { EditableImage } from './EditableImage';
-import { Shield, Phone, Mail, UserCheck, GraduationCap, School, Menu, X, ShieldAlert, Moon, Sun, LogOut } from 'lucide-react';
+import { Shield, Phone, Mail, UserCheck, GraduationCap, School, Menu, X, ShieldAlert, Moon, Sun, LogOut, Download, Smartphone } from 'lucide-react';
 import { api } from '../../lib/api';
+import { AppDownloadModal } from './AppDownloadModal';
 
 export const Header: React.FC = React.memo(() => {
   const { settings, updateSettings } = useCMS();
   const { user, teacher, student, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('mps_dark_mode');
     if (saved === 'true') {
@@ -111,6 +113,16 @@ export const Header: React.FC = React.memo(() => {
             title="Toggle Dark Mode"
           >
             {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-700" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDownloadModalOpen(true)}
+            className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-xl shadow-xs transition-all border border-amber-400"
+            title="Download Model Public School App for Android & iOS"
+          >
+            <Download className="w-4 h-4 text-slate-950" />
+            <span>Download App</span>
           </button>
 
           {(user || teacher || student) ? (
@@ -243,6 +255,17 @@ export const Header: React.FC = React.memo(() => {
           </a>
 
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setDownloadModalOpen(true);
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black py-2.5 rounded-xl text-center shadow-md border border-amber-400"
+            >
+              <Download className="w-4 h-4 text-slate-950" /> Download School App
+            </button>
+
             <a
               href="/portal"
               className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-extrabold py-2.5 rounded-xl text-center shadow-md"
@@ -266,6 +289,12 @@ export const Header: React.FC = React.memo(() => {
           </div>
         </div>
       )}
+
+      {/* App Download Modal */}
+      <AppDownloadModal
+        isOpen={downloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
+      />
     </header>
   );
 });

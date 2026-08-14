@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useCMS } from '../../context/CMSContext';
 import { EditableText } from './EditableText';
-import { Phone, Mail, MapPin, School, ShieldCheck } from 'lucide-react';
+import { Phone, Mail, MapPin, School, ShieldCheck, Download, Smartphone } from 'lucide-react';
 import { LegalPagesModal, LegalTab } from './LegalPagesModal';
+import { AppDownloadModal } from './AppDownloadModal';
 
 export const Footer: React.FC = React.memo(() => {
   const { settings } = useCMS();
   const [legalModalOpen, setLegalModalOpen] = useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [activeLegalTab, setActiveLegalTab] = useState<LegalTab>('privacy');
 
   const openLegalTab = (tab: LegalTab) => {
@@ -59,8 +61,18 @@ export const Footer: React.FC = React.memo(() => {
 
         {/* Col 3 */}
         <div className="space-y-2 font-medium">
-          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-heading mb-3">Portals & Transparency</h4>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-heading mb-3">Portals & Apps</h4>
           <ul className="space-y-2">
+            <li>
+              <button
+                type="button"
+                onClick={() => setDownloadModalOpen(true)}
+                className="hover:text-amber-500 transition-colors text-amber-500 font-black flex items-center gap-1.5"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Download Student App</span>
+              </button>
+            </li>
             <li><a href="/portal" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-blue-600 dark:text-blue-400 font-bold">Student & Parent Portal</a></li>
             <li><a href="/teacher" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-slate-700 dark:text-slate-300">Teacher Workspace</a></li>
             <li><a href="/admin" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-slate-700 dark:text-slate-300">Admin Control Center</a></li>
@@ -129,6 +141,12 @@ export const Footer: React.FC = React.memo(() => {
         isOpen={legalModalOpen}
         initialTab={activeLegalTab}
         onClose={() => setLegalModalOpen(false)}
+      />
+
+      {/* App Download Modal */}
+      <AppDownloadModal
+        isOpen={downloadModalOpen}
+        onClose={() => setDownloadModalOpen(false)}
       />
     </footer>
   );

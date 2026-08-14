@@ -176,33 +176,10 @@ export const AdminControlCenter: React.FC = () => {
       if (res.success && res.user) {
         loginUser({ user: res.user });
       } else {
-        // Fallback for demo / custom hosting environments
-        const u = loginForm.username.trim().toLowerCase();
-        if (u === 'admin' || u === 'admin1' || u === 'mps' || u === 'administrator' || u.includes('admin')) {
-          loginUser({
-            user: {
-              id: 'u-admin',
-              username: loginForm.username.trim() || 'admin',
-              role: 'admin',
-              name: 'System Administrator',
-              email: 'admin@modelpublicschool.com'
-            }
-          });
-        } else {
-          setLoginError(res.message || 'Incorrect credentials. Default Admin: admin / admin123');
-        }
+        setLoginError(res.message || 'Invalid administrator username or password.');
       }
     } catch (err: any) {
-      // Direct client-side login fallback for offline/static Vercel hosting
-      loginUser({
-        user: {
-          id: 'u-admin',
-          username: loginForm.username.trim() || 'admin',
-          role: 'admin',
-          name: 'System Administrator',
-          email: 'admin@modelpublicschool.com'
-        }
-      });
+      setLoginError(err.message || 'Failed to authenticate. Please check your connection and credentials.');
     } finally {
       setLoginLoading(false);
     }
@@ -531,28 +508,6 @@ export const AdminControlCenter: React.FC = () => {
                 >
                   {loginLoading ? 'Authenticating Credentials...' : 'Sign In To Admin Control Center'}
                 </button>
-
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginForm({ username: 'admin', password: 'admin123' });
-                      setLoginError('');
-                      loginUser({
-                        user: {
-                          id: 'u-admin',
-                          username: 'admin',
-                          role: 'admin',
-                          name: 'System Administrator',
-                          email: 'admin@modelpublicschool.com'
-                        }
-                      });
-                    }}
-                    className="w-full py-2.5 px-3 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 hover:text-amber-200 rounded-xl border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <span>⚡ One-Click Instant Admin Access (<strong className="text-white">admin / admin123</strong>)</span>
-                  </button>
-                </div>
               </form>
           </div>
         </div>

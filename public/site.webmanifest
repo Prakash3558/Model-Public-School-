@@ -1,15 +1,22 @@
 {
-  "name": "Model Public School (MPS Sikta)",
-  "short_name": "MPS Sikta",
+  "name": "Model Public School - Student App",
+  "short_name": "MPS Student",
+  "description": "Model Public School Student & Parent Companion App",
   "icons": [
     {
-      "src": "/logo.svg",
+      "src": "/logo.png",
       "sizes": "192x192 512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
       "type": "image/svg+xml"
     }
   ],
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
-  "background_color": "#0f1738",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
   "theme_color": "#1e3a8a"
 }
