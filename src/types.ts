@@ -21,6 +21,7 @@ export interface Teacher {
   email?: string;
   photo?: string;
   salary?: number;
+  qualification?: string;
 }
 
 export interface MonthFee {
@@ -29,6 +30,7 @@ export interface MonthFee {
   amount: number;
   dueDate?: string;
   paidDate?: string;
+  receiptNo?: string;
 }
 
 export interface FeeStructure {
@@ -60,6 +62,7 @@ export interface Student {
   phone: string;
   email?: string;
   address: string;
+  dob?: string;
   gender?: 'Male' | 'Female' | string;
   feePending?: number;
   admissionDate: string;

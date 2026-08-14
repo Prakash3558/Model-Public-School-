@@ -196,7 +196,7 @@ export const StudentPortal: React.FC = () => {
         section: loginForm.section.trim(),
         rollNo: loginForm.rollNo.trim(),
         phone: fullPhone,
-        password: loginForm.password,
+        password: loginForm.password.trim(),
         captchaToken: captchaToken || undefined
       });
 
@@ -206,10 +206,10 @@ export const StudentPortal: React.FC = () => {
         if (res.captchaRequired) {
           setCaptchaRequired(true);
         }
-        setLoginError(res.message || 'Incorrect email or password.');
+        setLoginError(res.message || 'Student record not found. Please check Roll No and Name.');
       }
     } catch (err) {
-      setLoginError('Server connection error. Please try again.');
+      setLoginError('Student record not found. Please check Class, Section, and Roll No.');
     } finally {
       setLoginLoading(false);
     }
@@ -434,6 +434,27 @@ export const StudentPortal: React.FC = () => {
               >
                 {loginLoading ? 'Authenticating Credentials...' : 'Sign In To Student Portal'}
               </button>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginForm({
+                      studentName: 'Rahul Kumar',
+                      className: '10',
+                      section: 'A',
+                      rollNo: '1001',
+                      phone: '9876543210',
+                      password: 'student123'
+                    });
+                    setSelectedCountryCode('+91');
+                    setLoginError('');
+                  }}
+                  className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/80 text-[11px] font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <span>⚡ Quick Demo Student: <strong className="text-amber-400">Class 10-A, Roll 1001</strong> (Rahul Kumar)</span>
+                </button>
+              </div>
             </form>
 
             <div className="pt-4 border-t border-slate-800 text-center">

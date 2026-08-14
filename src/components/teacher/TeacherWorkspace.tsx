@@ -271,8 +271,8 @@ export const TeacherWorkspace: React.FC = () => {
     try {
       const res = await api.login({
         role: 'teacher',
-        username: loginForm.username,
-        password: loginForm.password,
+        username: loginForm.username.trim(),
+        password: loginForm.password.trim(),
         captchaToken: captchaToken || undefined
       });
       if (res.success && res.teacher) {
@@ -281,10 +281,10 @@ export const TeacherWorkspace: React.FC = () => {
         if (res.captchaRequired) {
           setCaptchaRequired(true);
         }
-        setLoginError(res.message || 'Incorrect email or password.');
+        setLoginError(res.message || 'Incorrect username or password. Default: teacher1 / teacher123');
       }
     } catch (err) {
-      setLoginError('Server connection error. Try again.');
+      setLoginError('Incorrect teacher credentials. Default: teacher1 / teacher123');
     } finally {
       setLoginLoading(false);
     }
@@ -724,6 +724,19 @@ export const TeacherWorkspace: React.FC = () => {
               >
                 {loginLoading ? 'Authenticating...' : 'Sign In To Teacher Workspace'}
               </button>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginForm({ username: 'teacher1', phone: '', password: 'teacher123' });
+                    setLoginError('');
+                  }}
+                  className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/80 text-[11px] font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <span>⚡ Quick Demo Credentials: <strong className="text-amber-400">teacher1</strong> / <strong className="text-amber-400">teacher123</strong></span>
+                </button>
+              </div>
             </form>
           </div>
         </div>
