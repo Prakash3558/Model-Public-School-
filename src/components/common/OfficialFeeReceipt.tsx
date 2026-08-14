@@ -43,12 +43,17 @@ export interface OfficialFeeReceiptProps {
   settings?: SiteSettings | null;
   selectedMonth?: string;
   recId?: string;
+  receiptNo?: string;
   dateStr?: string;
+  paymentDate?: string;
   paidVia?: string;
+  paymentMode?: string;
   accountantName?: string;
   customItems?: FeeReceiptItem[];
+  collectedItems?: { headName?: string; particularName?: string; description?: string; monthName?: string; amount?: number; paid?: number }[];
   customTotal?: number;
   customPaid?: number;
+  totalPaid?: number;
   templateOverrides?: FeeReceiptTemplateOverrides;
 }
 
@@ -57,25 +62,38 @@ export const OfficialFeeReceipt: React.FC<OfficialFeeReceiptProps> = ({
   settings,
   selectedMonth,
   recId,
+  receiptNo,
   dateStr,
+  paymentDate,
   paidVia = 'Cash',
+  paymentMode,
   accountantName,
   customItems,
+  collectedItems,
   customTotal,
   customPaid,
+  totalPaid: totalPaidProp,
   templateOverrides
 }) => {
   const displayAccountant = accountantName || settings?.receipt_accountant_name || 'Sandeep';
   // Format receipt data
   const currentAcademicYear = '2026-2027';
-  const receiptId = recId || `33${student.rollNo ? student.rollNo.padStart(2, '0') : '22'}`;
-  const currentDate = dateStr || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+  const receiptId = recId || receiptNo || `33${student.rollNo ? student.rollNo.padStart(2, '0') : '22'}`;
+  const currentDate = dateStr || paymentDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+  const paymentMethod = paymentMode || paidVia;
   const nowTimestamp = new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\//g, '/');
 
   const activeMonth = selectedMonth || 'August, 2026';
 
   // Build itemized fee list
   let items: FeeReceiptItem[] = customItems || [];
+  if (items.length === 0 && collectedItems && collectedItems.length > 0) {
+    items = collectedItems.map(c => ({
+      description: c.headName || c.particularName || c.description || c.monthName || 'Fee Collection',
+      amount: c.amount || 0,
+      paid: c.paid !== undefined ? c.paid : (c.amount || 0)
+    }));
+  }
   if (items.length === 0) {
     const tuitionAmount = Math.round((student.feeInfo?.totalAnnual || 13200) / 12);
     items.push({

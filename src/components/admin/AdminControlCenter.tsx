@@ -195,7 +195,7 @@ export const AdminControlCenter: React.FC = () => {
           type: 'success',
           text: 'Admin Security Credentials & Mobile Number Updated Successfully!'
         });
-        setSecurityForm({ currentPassword: '', newUsername: '', newPassword: '', newPhone: '' });
+        setSecurityForm({ currentPassword: '', newUsername: '', newPassword: '', newPhone: '', newEmail: '' });
       } else {
         setSecurityMsg({ type: 'error', text: res.message || 'Failed to update admin credentials.' });
       }
@@ -667,8 +667,8 @@ export const AdminControlCenter: React.FC = () => {
           {/* Students */}
           <button
             onClick={() => { setActiveTab('students'); setIsSidebarOpen(false); }}
-            onMouseEnter={api.prefetchStudents}
-            onFocus={api.prefetchStudents}
+            onMouseEnter={() => api.prefetchStudents()}
+            onFocus={() => api.prefetchStudents()}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
               activeTab === 'students'
                 ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20'
@@ -1357,7 +1357,7 @@ export const AdminControlCenter: React.FC = () => {
                   <form onSubmit={async (e) => {
                     e.preventDefault();
                     if (!adminNewExam.title) return;
-                    await api.createOnlineExam(adminNewExam);
+                    await api.createOnlineExam({ ...adminNewExam, status: 'Upcoming' });
                     setAdminNewExam({
                       class: '10', section: 'A', subject: 'Science', title: '', date: new Date().toISOString().split('T')[0],
                       startTime: '10:00 AM', endTime: '12:00 PM', durationMinutes: 120, totalMarks: 100, zoomUrl: 'https://zoom.us/j/98123049182', instructions: '', status: 'Scheduled'
@@ -1510,7 +1510,7 @@ export const AdminControlCenter: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      onClick={() => toggleMFA()}
+                      onClick={() => toggleMFA(!mfaEnabled)}
                       className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
                         mfaEnabled ? 'bg-rose-500 hover:bg-rose-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'
                       }`}

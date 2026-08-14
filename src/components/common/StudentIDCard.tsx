@@ -1,15 +1,17 @@
 import React from 'react';
-import { Student } from '../../types';
+import { Student, SiteSettings } from '../../types';
 import { useCMS } from '../../context/CMSContext';
 import { Download, ShieldCheck, Phone, MapPin, Calendar, Award } from 'lucide-react';
 import { downloadElementAsPDF, downloadElementAsImage } from '../../lib/pdf';
 
 interface StudentIDCardProps {
   student: Student;
+  settings?: SiteSettings;
 }
 
-export const StudentIDCard: React.FC<StudentIDCardProps> = ({ student }) => {
-  const { settings } = useCMS();
+export const StudentIDCard: React.FC<StudentIDCardProps> = ({ student, settings: propSettings }) => {
+  const { settings: contextSettings } = useCMS();
+  const settings = propSettings || contextSettings;
 
   const handleDownloadPDF = () => {
     downloadElementAsPDF(`student-id-card-${student.id}`, `ID_Card_${student.name.replace(/\s+/g, '_')}.pdf`);

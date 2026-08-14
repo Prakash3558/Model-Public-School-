@@ -248,9 +248,9 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
   }, []);
 
   const toggleTeacherSalaryStatus = async (teacherId: string, defaultAmount: number = 30000) => {
-    const current = teacherSalaries[teacherId] || { status: 'Pending', amount: defaultAmount, month: 'August 2026' };
-    const newStatus = current.status === 'Paid' ? 'Pending' : 'Paid';
-    const updated = {
+    const current = teacherSalaries[teacherId] || { status: 'Pending' as const, amount: defaultAmount, month: 'August 2026' };
+    const newStatus: 'Paid' | 'Pending' = current.status === 'Paid' ? 'Pending' : 'Paid';
+    const updated: Record<string, { status: 'Paid' | 'Pending'; paidDate?: string; amount: number; month: string }> = {
       ...teacherSalaries,
       [teacherId]: {
         ...current,

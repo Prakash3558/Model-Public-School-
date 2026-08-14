@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { CMSProvider } from './context/CMSContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
 import { NoticeTicker } from './components/public/NoticeTicker';
@@ -71,71 +72,73 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      <CMSProvider>
-        <div className="min-h-screen bg-brand-bg text-brand-text font-body transition-colors selection:bg-amber-500 selection:text-slate-950 relative">
-          <Suspense fallback={null}>
-            {route === 'public' ? <PublicHomepageBackground /> : <FallingStarsCanvas />}
-          </Suspense>
-
-          {route === 'student-app' ? (
-            <Suspense fallback={<PageLoader />}>
-              <StudentAppShell />
-            </Suspense>
-          ) : route === 'teacher' ? (
-            <div>
-              <Header />
-              <Suspense fallback={<PageLoader />}>
-                <TeacherWorkspace />
-              </Suspense>
-              <Footer />
-            </div>
-          ) : route === 'admin' ? (
-            <div>
-              <Header />
-              <Suspense fallback={<PageLoader />}>
-                <AdminControlCenter />
-              </Suspense>
-              <Footer />
-            </div>
-          ) : route === 'portal' ? (
-            <div>
-              <Header />
-              <Suspense fallback={<PageLoader />}>
-                <StudentPortal />
-              </Suspense>
-              <Footer />
-            </div>
-          ) : (
-            <div>
-              <Header />
-              <NoticeTicker />
-              <main>
-                <HeroSection />
-                <AboutSection />
-                <FacilitiesSection />
-                <GallerySection />
-                <FeesSection />
-                <Suspense fallback={<PageLoader />}>
-                  <ThreeDSolarSystem />
-                </Suspense>
-                <AdmissionsSection />
-                <FacultySection />
-                <FAQSection />
-                <ContactSection />
-              </main>
-              <Footer />
-              <AdminCMSToolbar />
-            </div>
-          )}
-
-          {(route === 'portal' || route === 'student-app') && (
+    <ErrorBoundary>
+      <AuthProvider>
+        <CMSProvider>
+          <div className="min-h-screen bg-brand-bg text-brand-text font-body transition-colors selection:bg-amber-500 selection:text-slate-950 relative">
             <Suspense fallback={null}>
-              <FloatingAIWidget />
+              {route === 'public' ? <PublicHomepageBackground /> : <FallingStarsCanvas />}
             </Suspense>
-          )}
-        </div>
-      </CMSProvider>
-    </AuthProvider>
+
+            {route === 'student-app' ? (
+              <Suspense fallback={<PageLoader />}>
+                <StudentAppShell />
+              </Suspense>
+            ) : route === 'teacher' ? (
+              <div>
+                <Header />
+                <Suspense fallback={<PageLoader />}>
+                  <TeacherWorkspace />
+                </Suspense>
+                <Footer />
+              </div>
+            ) : route === 'admin' ? (
+              <div>
+                <Header />
+                <Suspense fallback={<PageLoader />}>
+                  <AdminControlCenter />
+                </Suspense>
+                <Footer />
+              </div>
+            ) : route === 'portal' ? (
+              <div>
+                <Header />
+                <Suspense fallback={<PageLoader />}>
+                  <StudentPortal />
+                </Suspense>
+                <Footer />
+              </div>
+            ) : (
+              <div>
+                <Header />
+                <NoticeTicker />
+                <main>
+                  <HeroSection />
+                  <AboutSection />
+                  <FacilitiesSection />
+                  <GallerySection />
+                  <FeesSection />
+                  <Suspense fallback={<PageLoader />}>
+                    <ThreeDSolarSystem />
+                  </Suspense>
+                  <AdmissionsSection />
+                  <FacultySection />
+                  <FAQSection />
+                  <ContactSection />
+                </main>
+                <Footer />
+                <AdminCMSToolbar />
+              </div>
+            )}
+
+            {(route === 'portal' || route === 'student-app') && (
+              <Suspense fallback={null}>
+                <FloatingAIWidget />
+              </Suspense>
+            )}
+          </div>
+        </CMSProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

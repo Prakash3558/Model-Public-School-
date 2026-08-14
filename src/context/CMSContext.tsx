@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { SiteSettings } from '../types';
-import { api } from '../lib/api';
+import { api, defaultSiteSettings } from '../lib/api';
 
 interface CMSContextType {
-  settings: SiteSettings | null;
+  settings: SiteSettings;
   loading: boolean;
   syncStatus: 'synced' | 'saving' | 'saved' | 'error';
   lastSavedAt: number | null;
@@ -19,16 +19,28 @@ const CMSContext = createContext<CMSContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY = 'mps_site_settings_v3';
 
 export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [settings, setSettings] = useState<SiteSettings | null>(() => {
+  const [settings, setSettings] = useState<SiteSettings>(() => {
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...defaultSiteSettings,
+          ...parsed,
+          content_blocks: {
+            ...defaultSiteSettings.content_blocks,
+            ...(parsed.content_blocks || {})
+          },
+          theme_colors: {
+            ...defaultSiteSettings.theme_colors,
+            ...(parsed.theme_colors || {})
+          }
+        };
       }
     } catch (e) {
       console.error('Failed to read settings from localStorage:', e);
     }
-    return null;
+    return defaultSiteSettings;
   });
   const [loading, setLoading] = useState<boolean>(() => {
     try {

@@ -44,12 +44,18 @@ interface AIHomeworkTutorProps {
   isOpen?: boolean;
   onClose?: () => void;
   isWidgetMode?: boolean;
+  className?: string;
+  classGrade?: string;
+  subject?: string;
 }
 
 export const AIHomeworkTutor: React.FC<AIHomeworkTutorProps> = ({ 
   isOpen = true, 
   onClose,
-  isWidgetMode = false 
+  isWidgetMode = false,
+  className: initialClassName,
+  classGrade,
+  subject: initialSubject
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {

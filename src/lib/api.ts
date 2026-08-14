@@ -104,7 +104,7 @@ function setLocalData<T>(key: string, value: T): void {
 }
 
 // Default Seed Data
-const defaultSiteSettings: SiteSettings = {
+export const defaultSiteSettings: SiteSettings = {
   school_name: 'Model Public School (MPS Sikta)',
   tagline: 'Empowering Young Minds for a Brighter Future',
   cbse_affiliation: '330854',

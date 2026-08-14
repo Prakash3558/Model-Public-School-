@@ -51,7 +51,7 @@ export interface FeeStructure {
 
 export interface Student {
   id: string;
-  userId: string;
+  userId?: string;
   name: string;
   rollNo: string;
   class: string;
@@ -59,13 +59,15 @@ export interface Student {
   password?: string;
   photo?: string;
   parentName: string;
+  motherName?: string;
+  enrollmentNo?: string;
   phone: string;
   email?: string;
-  address: string;
+  address?: string;
   dob?: string;
   gender?: 'Male' | 'Female' | string;
   feePending?: number;
-  admissionDate: string;
+  admissionDate?: string;
   feeInfo: FeeStructure;
   notice?: string;
   addons?: {
@@ -188,12 +190,12 @@ export interface FeeItem {
 }
 
 export interface ThemeColors {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  cardBg: string;
-  text: string;
+  primary?: string;
+  secondary?: string;
+  accent?: string;
+  background?: string;
+  cardBg?: string;
+  text?: string;
 }
 
 export interface SEOMetadata {
@@ -234,7 +236,9 @@ export interface SiteSettings {
   tagline: string;
   cbse_affiliation: string;
   address: string;
+  contact_address?: string;
   phones: string;
+  contact_phone?: string;
   email: string;
   principal_name: string;
   principal_message: string;
@@ -270,7 +274,7 @@ export interface OnlineClass {
   startTime: string;
   endTime: string;
   date: string;
-  status: 'Scheduled' | 'Live' | 'Completed' | 'Cancelled';
+  status: 'Scheduled' | 'Live' | 'Completed' | 'Upcoming' | 'Cancelled';
 }
 
 export interface OnlineExam {
@@ -296,6 +300,9 @@ export interface TimeTableSlot {
   section: string;
   day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
   time: string;
+  startTime?: string;
+  endTime?: string;
+  periodNo?: number | string;
   subject: string;
   teacherName: string;
   roomNo?: string;
@@ -322,6 +329,8 @@ export interface SchoolDiaryEntry {
   date: string;
   subject: string;
   note: string;
+  title?: string;
+  content?: string;
   teacherName: string;
 }
 
@@ -332,6 +341,8 @@ export interface SyllabusItem {
   subject: string;
   term: 'Term 1' | 'Term 2' | 'Annual';
   chapters: string;
+  chapterName?: string;
+  status?: string;
   pdfUrl?: string;
 }
 
@@ -372,6 +383,8 @@ export interface SchoolMessage {
   section?: string;
   subject: string;
   message: string;
+  title?: string;
+  content?: string;
   status: 'Pending' | 'Replied';
   reply?: string;
   date: string;
@@ -451,6 +464,7 @@ export interface FeeReceiptTemplate {
   showLogo: boolean;
   primaryColor: string;
   authorizedSignatoryTitle: string;
+  accountantName?: string;
 }
 
 export interface FeeReceiptRecord {
