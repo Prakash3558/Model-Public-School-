@@ -97,6 +97,7 @@ export const Header: React.FC = React.memo(() => {
           <a href="#facilities" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Facilities</a>
           <a href="#gallery" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Gallery</a>
           <a href="#fees" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Fee Structure</a>
+          <a href="#faq" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">FAQ</a>
           <a href="#admissions" onMouseEnter={api.prefetchAdmissions} className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Admissions</a>
           <a href="#contact" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Contact</a>
         </nav>
@@ -218,6 +219,13 @@ export const Header: React.FC = React.memo(() => {
             className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
           >
             Fee Structure
+          </a>
+          <a
+            href="#faq"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
+          >
+            FAQ & Questions
           </a>
           <a
             href="#admissions"

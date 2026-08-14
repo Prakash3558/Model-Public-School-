@@ -52,6 +52,13 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <!-- FAQ & Academic Questions -->
+  <url>
+    <loc>https://www.modelpublicschool.com/#faq</loc>
+    <lastmod>2026-08-13</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
   <!-- Contact Us -->
   <url>
     <loc>https://www.modelpublicschool.com/#contact</loc>

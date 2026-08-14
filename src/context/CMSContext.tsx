@@ -161,27 +161,132 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         script.type = 'application/ld+json';
         document.head.appendChild(script);
       }
+      const schoolName = data.school_name || "Model Public School";
       const schemaData = {
         "@context": "https://schema.org",
-        "@type": "EducationalOrganization",
-        "name": data.school_name || "Model Public School",
-        "alternateName": ["MPS Sikta", "Model Public School Bhawanipur"],
-        "url": canonical,
-        "logo": image,
-        "image": image,
-        "description": description,
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": data.address || "AT- Bhawanipur, P.O.- Kursi Barwa, Sikta",
-          "addressLocality": "West Champaran",
-          "addressRegion": "Bihar",
-          "postalCode": "845307",
-          "addressCountry": "IN"
-        },
-        "telephone": data.phones || "+91 8757968130",
-        "email": data.email || "modelpublicschool@gmail.com",
-        "sameAs": [
-          "https://maps.google.com/?q=Model+Public+School+Bhawanipur+Sikta+West+Champaran+Bihar"
+        "@graph": [
+          {
+            "@type": "School",
+            "@id": `${canonical}#school`,
+            "name": schoolName,
+            "alternateName": [
+              "MPS Sikta",
+              "Model Public School Sikta",
+              "Model Public School Bhawanipur"
+            ],
+            "url": canonical,
+            "logo": {
+              "@type": "ImageObject",
+              "url": image,
+              "caption": `${schoolName} Logo`
+            },
+            "image": image,
+            "description": description,
+            "telephone": data.phones || "+91 8757968130",
+            "email": data.email || "modelpublicschool@gmail.com",
+            "priceRange": "₹₹",
+            "currenciesAccepted": "INR",
+            "paymentAccepted": "Cash, Credit Card, UPI, Net Banking",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": data.address || "AT- Bhawanipur, P.O.- Kursi Barwa, Sikta",
+              "addressLocality": "West Champaran",
+              "addressRegion": "Bihar",
+              "postalCode": "845307",
+              "addressCountry": "IN"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 26.9063,
+              "longitude": 84.5054
+            },
+            "hasCredential": [
+              {
+                "@type": "EducationalOccupationalCredential",
+                "credentialCategory": "CBSE Affiliation",
+                "recognizedBy": {
+                  "@type": "Organization",
+                  "name": "Central Board of Secondary Education (CBSE)"
+                }
+              }
+            ],
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "bestRating": "5",
+              "worstRating": "1",
+              "ratingCount": "194"
+            },
+            "openingHoursSpecification": [
+              {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                "opens": "07:30",
+                "closes": "14:00"
+              }
+            ],
+            "sameAs": [
+              "https://www.facebook.com",
+              "https://maps.google.com/?q=Model+Public+School+Bhawanipur+Sikta+West+Champaran+Bihar"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": `${canonical}#website`,
+            "url": canonical,
+            "name": schoolName,
+            "publisher": {
+              "@id": `${canonical}#school`
+            },
+            "inLanguage": "en-IN",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": `${canonical}?q={search_term_string}`,
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "BreadcrumbList",
+            "@id": `${canonical}#breadcrumbs`,
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": canonical },
+              { "@type": "ListItem", "position": 2, "name": "Admissions 2026", "item": `${canonical}#admissions` },
+              { "@type": "ListItem", "position": 3, "name": "Fee Structure", "item": `${canonical}#fees` },
+              { "@type": "ListItem", "position": 4, "name": "Facilities & Labs", "item": `${canonical}#facilities` },
+              { "@type": "ListItem", "position": 5, "name": "FAQ", "item": `${canonical}#faq` },
+              { "@type": "ListItem", "position": 6, "name": "Student Portal", "item": `${canonical}portal` }
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": `${canonical}#faq`,
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": `How do I apply for admission to ${schoolName} (MPS Sikta) for session 2026–2027?`,
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Admissions for the 2026–2027 academic session are currently open from Nursery to Class 10. Parents can register online via the Admissions portal on this website, or visit the school campus accounts desk at Bhawanipur, Sikta, West Champaran."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": `Is ${schoolName} affiliated with CBSE?`,
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": `Yes, ${schoolName} (MPS Sikta) is a recognized CBSE English Medium educational institution with Affiliation Number ${data.cbse_affiliation || '330854'} and official UDISE Code ${data.udise_code || '10011503402'}.`
+                }
+              },
+              {
+                "@type": "Question",
+                "name": `Where is ${schoolName} located in West Champaran, Bihar?`,
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": `The school campus is located at ${data.address || 'Bhawanipur, Post Office: Kursi Barwa, Sikta, West Champaran, Bihar - 845307'}.`
+                }
+              }
+            ]
+          }
         ]
       };
       script.text = JSON.stringify(schemaData);

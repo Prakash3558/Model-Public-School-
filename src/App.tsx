@@ -11,6 +11,7 @@ import { FacilitiesSection } from './components/public/FacilitiesSection';
 import { GallerySection } from './components/public/GallerySection';
 import { FeesSection } from './components/public/FeesSection';
 import { AdmissionsSection } from './components/public/AdmissionsSection';
+import { FAQSection } from './components/public/FAQSection';
 import { ContactSection } from './components/public/ContactSection';
 import { AdminCMSToolbar } from './components/cms/AdminCMSToolbar';
 import PublicHomepageBackground from './components/common/PublicHomepageBackground';
@@ -105,6 +106,7 @@ export default function App() {
                 </Suspense>
                 <AdmissionsSection />
                 <FacultySection />
+                <FAQSection />
                 <ContactSection />
               </main>
               <Footer />
