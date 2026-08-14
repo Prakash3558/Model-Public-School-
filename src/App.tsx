@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AuthProvider } from './context/AuthContext';
 import { CMSProvider } from './context/CMSContext';
 import { Header } from './components/common/Header';
@@ -119,6 +120,7 @@ export default function App() {
               <FloatingAIWidget />
             </Suspense>
           )}
+          <SpeedInsights />
         </div>
       </CMSProvider>
     </AuthProvider>
