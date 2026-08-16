@@ -93,16 +93,16 @@ try {
 
 // Initial Seed Data
 const initialSettings: SiteSettings = {
-  school_name: 'Model Public School (MPS Sikta)',
+  school_name: 'Model Public School',
   tagline: 'Empowering Young Minds for a Brighter Future',
   cbse_affiliation: '330854',
   address: 'AT- Bhawanipur, P.O.- Kursi Barwa, P.S.- Sikta, West Champaran, Bihar - 845307',
   phones: '+91 87579 68130, +91 91620 24642',
   email: 'modelpublicschool@gmail.com',
-  principal_name: 'Dr. R.K. Sharma',
+  principal_name: 'Mr. Waseem Aalam',
   principal_message: 'Welcome to Model Public School, Sikta. We are committed to fostering academic excellence, moral integrity, and holistic development in every child. Our modern infrastructure paired with experienced educators creates an inspiring learning atmosphere.',
-  principal_photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600',
-  logo_url: '/logo.png',
+  principal_photo: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700123090_WhatsApp-Image-2026-.png',
+  logo_url: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786617173956_Screenshot_2026-08-0.png',
   theme_colors: {
     primary: '#1e3a8a',    // Rich Navy Blue
     secondary: '#d97706',  // Amber Gold
@@ -117,9 +117,9 @@ const initialSettings: SiteSettings = {
     {
       id: 'slide-1',
       badge: 'CBSE Affiliated No. 330854',
-      title: 'Welcome to Model Public School, Sikta',
+      title: 'Welcome to Model Public School',
       subtitle: 'Nurturing curiosity, character, and scholastic distinction in West Champaran, Bihar.',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1600',
+      image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700057383_BUILDING__1__png.png',
       primaryBtnText: 'Explore Admissions',
       primaryBtnUrl: '#admissions',
       secondaryBtnText: 'Student Portal Login',
@@ -130,7 +130,7 @@ const initialSettings: SiteSettings = {
       badge: 'State-of-the-Art Campus',
       title: 'Holistic Education & Modern Smart Classrooms',
       subtitle: 'Digital learning tools, advanced science laboratories, sports facilities, and individual attention.',
-      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=1600',
+      image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700074424_BUILDING-2__1__png.png',
       primaryBtnText: 'View Facilities',
       primaryBtnUrl: '#facilities',
       secondaryBtnText: 'View Gallery',
@@ -145,7 +145,11 @@ const initialSettings: SiteSettings = {
     'fee.headline': 'Transparent & Affordable Fee Structure',
     'fee.subtext': 'Quality education made accessible with no hidden charges. Monthly installments and merit scholarships available.',
     'contact.heading': 'Get in Touch with Our Campus',
-    'contact.subtext': 'Visit our administration block or call us for admissions, campus tours, and general inquiries.'
+    'contact.subtext': 'Visit our administration block or call us for admissions, campus tours, and general inquiries.',
+    'header.schoolName': 'Model Public School',
+    'footer.schoolName': 'Model Public School',
+    'about.principalName': 'Mr. Waseem Aalam',
+    'about.principalMessage': 'Welcome to Model Public School, Sikta. We are committed to fostering academic excellence, moral integrity, and holistic development in every child. Our modern infrastructure paired with experienced educators creates an inspiring learning atmosphere.'
   },
   gallery: [
     { id: 'g1', title: 'Smart Classroom Session', category: 'Academics', url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=800', caption: 'Interactive learning with modern digital boards' },
@@ -157,24 +161,13 @@ const initialSettings: SiteSettings = {
   ],
   facilities: [
     { id: 'f1', title: 'Smart Digital Classrooms', iconName: 'Monitor', description: 'Interactive touch panels, audio-visual lessons, and digital curriculum integration.', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=600' },
-    { id: 'f2', title: 'Science & Bio Laboratories', iconName: 'FlaskConical', description: 'Fully furnished Physics, Chemistry, and Biology practical labs adhering to CBSE safety norms.', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=600' },
-    { id: 'f3', title: 'Computer & AI Center', iconName: 'Cpu', description: 'Modern computer lab with high-speed internet, programming workshops, and robotics modules.', image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=600' },
+    { id: 'f2', title: 'Science & Bio Laboratories', iconName: 'FlaskConical', description: 'Fully furnished Physics, Chemistry, and Biology practical labs adhering to CBSE safety norms.', image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786708464091_lab-rotated_jpeg.png' },
+    { id: 'f3', title: 'Computer Laboratory ', iconName: 'Cpu', description: 'Modern computer lab with high-speed internet, programming workshops, and robotics modules.', image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786708536053_Screenshot_2026-07-2.png' },
     { id: 'f4', title: 'School Bus Transport', iconName: 'Bus', description: 'GPS-tracked school fleet covering Sikta, Bhawanipur, Kursi Barwa, and surrounding areas.', image: 'https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&q=80&w=600' },
     { id: 'f5', title: 'Library & Reading Lounge', iconName: 'BookOpen', description: 'Vast collection of academic books, national journals, competitive guides, and literature.', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=600' },
     { id: 'f6', title: 'Sports Grounds & Fitness', iconName: 'Trophy', description: 'Cricket pitch, football turf, badminton courts, table tennis, and yoga sessions.', image: 'https://images.unsplash.com/photo-1576267423445-b2e0074d68a4?auto=format&fit=crop&q=80&w=600' }
   ],
   faculty: [
-    {
-      id: 'fac-1',
-      name: 'Dr. R.K. Sharma',
-      designation: 'Principal & Senior Faculty',
-      subject: 'Physics & Educational Leadership',
-      qualification: 'Ph.D. in Physics, M.Ed., B.Ed.',
-      experience: '22+ Years Experience',
-      photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600',
-      bio: 'Dedicated to inspiring scholastic excellence and character building at MPS Sikta.',
-      email: 'principal@modelpublicschool.com'
-    },
     {
       id: 'fac-2',
       name: 'Anjali Verma',
@@ -196,26 +189,16 @@ const initialSettings: SiteSettings = {
       photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600',
       bio: 'Passionate about hands-on experimental chemistry and CBSE board exam coaching.',
       email: 'rajesh.chem@modelpublicschool.com'
-    },
-    {
-      id: 'fac-4',
-      name: 'Sunita Devi',
-      designation: 'TGT English Literature',
-      subject: 'English & Communication Skills',
-      qualification: 'M.A. English, B.Ed.',
-      experience: '8+ Years Experience',
-      photo: 'https://images.unsplash.com/photo-1580894732413-a704936a33e2?auto=format&fit=crop&q=80&w=600',
-      bio: 'Fostering fluent English communication, debate, and creative writing skills.',
-      email: 'sunita.eng@modelpublicschool.com'
     }
   ],
   grade_fees: [
-    { id: 'fee-1', className: 'Nursery to U.K.G.', admissionFee: 3500, monthlyTuition: 850, annualCharges: 2000, examFee: 500 },
-    { id: 'fee-2', className: 'Class 1 to Class 5', admissionFee: 4500, monthlyTuition: 1100, annualCharges: 2500, examFee: 600 },
-    { id: 'fee-3', className: 'Class 6 to Class 8', admissionFee: 5500, monthlyTuition: 1400, annualCharges: 3000, examFee: 800 },
-    { id: 'fee-4', className: 'Class 9 & Class 10', admissionFee: 6500, monthlyTuition: 1800, annualCharges: 3500, examFee: 1000 }
+    { id: 'fee-1', className: 'Nursery to U.K.G.', admissionFee: 3500, annualCharges: 2000, monthlyTuition: 850, examFee: 500 },
+    { id: 'fee-2', className: 'Class 1 to Class 5', admissionFee: 4500, annualCharges: 2500, monthlyTuition: 1100, examFee: 600 },
+    { id: 'fee-3', className: 'Class 6 to Class 8', admissionFee: 5500, annualCharges: 3000, monthlyTuition: 1400, examFee: 800 },
+    { id: 'fee-4', className: 'Class 9 & Class 10', admissionFee: 6500, annualCharges: 3500, monthlyTuition: 1800, examFee: 1000 }
   ],
-  section_order: ['hero', 'notice', 'about', 'faculty', 'facilities', 'gallery', 'fees', 'admissions', 'contact']
+  section_order: ['hero', 'notice', 'about', 'faculty', 'facilities', 'gallery', 'fees', 'admissions', 'contact'],
+  seo_meta: {}
 };
 
 const initialUsers: User[] = [

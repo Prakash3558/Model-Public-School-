@@ -104,7 +104,7 @@ export const StudentIDCard: React.FC<StudentIDCardProps> = ({ student, settings:
 
           <div className="text-center">
             <div className="font-serif italic text-amber-300 text-xs font-bold leading-none mb-1">
-              {settings?.principal_name || 'Dr. R.K. Sharma'}
+              {settings?.principal_name || 'Mr. Waseem Aalam'}
             </div>
             <div className="border-t border-amber-400/50 pt-0.5 font-sans uppercase text-[8px] tracking-wider text-slate-300">
               Principal Stamp

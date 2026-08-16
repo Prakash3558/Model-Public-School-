@@ -560,7 +560,7 @@ export const TeacherWorkspace: React.FC = () => {
         totalMarks: Number(newExamForm.totalMarks),
         zoomUrl: newExamForm.zoomUrl,
         instructions: newExamForm.instructions,
-        status: newExamForm.status
+        status: (newExamForm.status === 'Live' || newExamForm.status === 'Completed') ? newExamForm.status : 'Upcoming'
       });
       setNewExamForm({
         subject: 'Mathematics',

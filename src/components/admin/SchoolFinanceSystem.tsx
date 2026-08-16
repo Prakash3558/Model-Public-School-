@@ -3,7 +3,7 @@ import { api } from '../../lib/api';
 import {
   Student, Teacher, SiteSettings, FeeParticularMaster, FeeDiscount, TaxSlab,
   AdvanceFeeRecord, FeeReceiptTemplate, FeeReceiptRecord, FinancialTransaction,
-  StaffPayroll, FeeAlertLog
+  StaffPayroll, FeeAlertLog, FeeItem
 } from '../../types';
 import { OfficialFeeReceipt, numberToWords } from '../common/OfficialFeeReceipt';
 import { downloadElementAsPDF } from '../../lib/pdf';
@@ -1129,14 +1129,15 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
               <button
                 onClick={async () => {
                   try {
-                    const updatedGradeFees = classFeeMatrix.map(c => ({
-                      class: c.classGroup,
-                      monthly: c.monthlyTuition,
-                      annual: c.annualCharges,
-                      exam: c.examFee,
-                      admission: c.admissionFee,
-                      hostel: c.hostelFee,
-                      transport: c.transportFee
+                    const updatedGradeFees: FeeItem[] = classFeeMatrix.map((c, index) => ({
+                      id: `fee-${index + 1}`,
+                      className: c.classGroup,
+                      monthlyTuition: c.monthlyTuition,
+                      annualCharges: c.annualCharges,
+                      examFee: c.examFee,
+                      admissionFee: c.admissionFee,
+                      hostelFee: c.hostelFee,
+                      transportFee: c.transportFee
                     }));
                     await api.updateSettings({ grade_fees: updatedGradeFees });
                     setFeeSaveMsg('✓ Class Fee Matrix saved & synchronized with Homepage and active database!');

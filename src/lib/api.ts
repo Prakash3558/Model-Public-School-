@@ -105,16 +105,16 @@ function setLocalData<T>(key: string, value: T): void {
 
 // Default Seed Data
 export const defaultSiteSettings: SiteSettings = {
-  school_name: 'Model Public School (MPS Sikta)',
+  school_name: 'Model Public School',
   tagline: 'Empowering Young Minds for a Brighter Future',
   cbse_affiliation: '330854',
   address: 'AT- Bhawanipur, P.O.- Kursi Barwa, P.S.- Sikta, West Champaran, Bihar - 845307',
   phones: '+91 87579 68130, +91 91620 24642',
   email: 'modelpublicschool@gmail.com',
-  principal_name: 'Dr. R.K. Sharma',
-  principal_message: 'Welcome to Model Public School, Sikta. We are committed to fostering academic excellence, moral integrity, and holistic development in every child.',
-  principal_photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600',
-  logo_url: '/logo.png',
+  principal_name: 'Mr. Waseem Aalam',
+  principal_message: 'Welcome to Model Public School, Sikta. We are committed to fostering academic excellence, moral integrity, and holistic development in every child. Our modern infrastructure paired with experienced educators creates an inspiring learning atmosphere.',
+  principal_photo: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700123090_WhatsApp-Image-2026-.png',
+  logo_url: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786617173956_Screenshot_2026-08-0.png',
   theme_colors: {
     primary: '#1e3a8a',
     secondary: '#d97706',
@@ -129,9 +129,9 @@ export const defaultSiteSettings: SiteSettings = {
     {
       id: 'slide-1',
       badge: 'CBSE Affiliated No. 330854',
-      title: 'Welcome to Model Public School, Sikta',
+      title: 'Welcome to Model Public School',
       subtitle: 'Nurturing curiosity, character, and scholastic distinction in West Champaran, Bihar.',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1600',
+      image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700057383_BUILDING__1__png.png',
       primaryBtnText: 'Explore Admissions',
       primaryBtnUrl: '#admissions',
       secondaryBtnText: 'Student Portal Login',
@@ -142,7 +142,7 @@ export const defaultSiteSettings: SiteSettings = {
       badge: 'State-of-the-Art Campus',
       title: 'Holistic Education & Modern Smart Classrooms',
       subtitle: 'Digital learning tools, advanced science laboratories, sports facilities, and individual attention.',
-      image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&q=80&w=1600',
+      image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700074424_BUILDING-2__1__png.png',
       primaryBtnText: 'View Facilities',
       primaryBtnUrl: '#facilities',
       secondaryBtnText: 'View Gallery',
@@ -157,7 +157,11 @@ export const defaultSiteSettings: SiteSettings = {
     'fee.headline': 'Transparent & Affordable Fee Structure',
     'fee.subtext': 'Quality education made accessible with no hidden charges. Monthly installments and merit scholarships available.',
     'contact.heading': 'Get in Touch with Our Campus',
-    'contact.subtext': 'Visit our administration block or call us for admissions, campus tours, and general inquiries.'
+    'contact.subtext': 'Visit our administration block or call us for admissions, campus tours, and general inquiries.',
+    'header.schoolName': 'Model Public School',
+    'footer.schoolName': 'Model Public School',
+    'about.principalName': 'Mr. Waseem Aalam',
+    'about.principalMessage': 'Welcome to Model Public School, Sikta. We are committed to fostering academic excellence, moral integrity, and holistic development in every child. Our modern infrastructure paired with experienced educators creates an inspiring learning atmosphere.'
   },
   gallery: [
     { id: 'g1', title: 'Smart Classroom Session', category: 'Academics', url: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=800', caption: 'Interactive learning with modern digital boards' },
@@ -168,22 +172,23 @@ export const defaultSiteSettings: SiteSettings = {
     { id: 'g6', title: 'Advanced Computer & IT Laboratory', category: 'Campus', url: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800', caption: 'High-speed internet and coding sessions' }
   ],
   facilities: [
-    { id: 'f1', title: 'Digital Smart Classes', description: 'Equipped with interactive touch panels, animated CBSE curriculum, and audio-visual modules.', iconName: 'Tv', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=800' },
-    { id: 'f2', title: 'Composite Science Labs', description: 'State-of-the-art physics, chemistry, and biology experimental stations adhering to CBSE safety norms.', iconName: 'FlaskConical', image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=800' },
-    { id: 'f3', title: 'Modern Computer Center', description: 'Equipped with high-performance desktop systems, high-speed fiber internet, and coding training.', iconName: 'Laptop', image: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800' },
-    { id: 'f4', title: 'Safe School Bus Fleet', description: 'GPS-enabled school buses covering all major villages and town points in Sikta & Bettiah region.', iconName: 'Bus', image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800' }
+    { id: 'f1', title: 'Smart Digital Classrooms', description: 'Interactive touch panels, audio-visual lessons, and digital curriculum integration.', iconName: 'Monitor', image: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&q=80&w=800' },
+    { id: 'f2', title: 'Science & Bio Laboratories', description: 'Fully furnished Physics, Chemistry, and Biology practical labs adhering to CBSE safety norms.', iconName: 'FlaskConical', image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786708464091_lab-rotated_jpeg.png' },
+    { id: 'f3', title: 'Computer Laboratory ', description: 'Modern computer lab with high-speed internet, programming workshops, and robotics modules.', iconName: 'Cpu', image: 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786708536053_Screenshot_2026-07-2.png' },
+    { id: 'f4', title: 'School Bus Transport', description: 'GPS-tracked school fleet covering Sikta, Bhawanipur, Kursi Barwa, and surrounding areas.', iconName: 'Bus', image: 'https://images.unsplash.com/photo-1557223562-6c77ef16210f?auto=format&fit=crop&q=80&w=800' },
+    { id: 'f5', title: 'Library & Reading Lounge', description: 'Vast collection of academic books, national journals, competitive guides, and literature.', iconName: 'BookOpen', image: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=800' },
+    { id: 'f6', title: 'Sports Grounds & Fitness', description: 'Cricket pitch, football turf, badminton courts, table tennis, and yoga sessions.', iconName: 'Trophy', image: 'https://images.unsplash.com/photo-1576267423445-b2e0074d68a4?auto=format&fit=crop&q=80&w=800' }
   ],
   grade_fees: [
-    { id: 'fs-1', className: 'Nursery to U.K.G', monthlyTuition: 850, annualCharges: 1800, admissionFee: 2000, examFee: 600 },
-    { id: 'fs-2', className: 'Class 1 to Class 5', monthlyTuition: 1100, annualCharges: 2500, admissionFee: 3000, examFee: 1200 },
-    { id: 'fs-3', className: 'Class 6 to Class 8', monthlyTuition: 1350, annualCharges: 2800, admissionFee: 3500, examFee: 1500 },
-    { id: 'fs-4', className: 'Class 9 to Class 10', monthlyTuition: 1600, annualCharges: 3200, admissionFee: 4000, examFee: 1800 }
+    { id: 'fee-1', className: 'Nursery to U.K.G.', admissionFee: 3500, annualCharges: 2000, monthlyTuition: 850, examFee: 500 },
+    { id: 'fee-2', className: 'Class 1 to Class 5', admissionFee: 4500, annualCharges: 2500, monthlyTuition: 1100, examFee: 600 },
+    { id: 'fee-3', className: 'Class 6 to Class 8', admissionFee: 5500, annualCharges: 3000, monthlyTuition: 1400, examFee: 800 },
+    { id: 'fee-4', className: 'Class 9 & Class 10', admissionFee: 6500, annualCharges: 3500, monthlyTuition: 1800, examFee: 1000 }
   ],
-  section_order: ['hero', 'about', 'facilities', 'academics', 'faculty', 'gallery', 'admissions', 'fee', 'contact'],
+  section_order: ['hero', 'notice', 'about', 'faculty', 'facilities', 'gallery', 'fees', 'admissions', 'contact'],
   faculty: [
-    { id: 'fac-1', name: 'Dr. R.K. Sharma', designation: 'Principal & Head of Institution', subject: 'Physics & Leadership', qualification: 'Ph.D., M.Sc. Physics, B.Ed.', experience: '22+ Years', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400' },
-    { id: 'fac-2', name: 'Prakash Kumar', designation: 'Senior Faculty - Mathematics & IT', subject: 'Mathematics & Computer Science', qualification: 'M.Sc. Mathematics, B.Ed.', experience: '10+ Years', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400' },
-    { id: 'fac-3', name: 'Anita Verma', designation: 'Faculty - Science & Biology', subject: 'Biology & Environmental Studies', qualification: 'M.Sc. Zoology, B.Ed.', experience: '8+ Years', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400' }
+    { id: 'fac-2', name: 'Anjali Verma', designation: 'Head of Mathematics Dept', subject: 'Advanced Mathematics', qualification: 'M.Sc. Mathematics, B.Ed. (Gold Medalist)', experience: '14+ Years Experience', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600', bio: 'Specialist in Olympiad mathematics and conceptual problem-solving techniques.', email: 'anjali.math@modelpublicschool.com' },
+    { id: 'fac-3', name: 'Rajesh Kumar Singh', designation: 'Senior PGT Chemistry', subject: 'Chemistry & Lab Incharge', qualification: 'M.Sc. Organic Chemistry, B.Ed.', experience: '10+ Years Experience', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600', bio: 'Passionate about hands-on experimental chemistry and CBSE board exam coaching.', email: 'rajesh.chem@modelpublicschool.com' }
   ]
 };
 
@@ -395,11 +400,34 @@ export const api = {
       const cached = getFromCache<SiteSettings>(key);
       if (cached) return cached;
     }
-    const result = await safeFetch<SiteSettings>(
-      '/api/settings',
-      { headers: await getAuthHeaders() },
-      () => getLocalData<SiteSettings>('settings', defaultSiteSettings)
-    );
+
+    // 1. Try Backend API
+    try {
+      const authHeaders = await getAuthHeaders();
+      const res = await fetch(apiUrl('/api/settings'), { headers: authHeaders });
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data && data.school_name) {
+          setLocalData('settings', data);
+          setInCache(key, data);
+          return data;
+        }
+      }
+    } catch (e) {}
+
+    // 2. Direct Supabase Query (works worldwide from any device or network)
+    try {
+      const { data: supaRow } = await supabase.from('site_settings').select('data').eq('id', 1).maybeSingle();
+      if (supaRow && supaRow.data && (supaRow.data as any).school_name) {
+        const supaSettings = supaRow.data as SiteSettings;
+        setLocalData('settings', supaSettings);
+        setInCache(key, supaSettings);
+        return supaSettings;
+      }
+    } catch (e) {}
+
+    const result = getLocalData<SiteSettings>('settings', defaultSiteSettings);
     setInCache(key, result);
     return result;
   },
@@ -407,13 +435,39 @@ export const api = {
   async updateSettings(settings: Partial<SiteSettings>): Promise<{ success: boolean; settings: SiteSettings }> {
     clearApiCache('settings');
     const current = getLocalData<SiteSettings>('settings', defaultSiteSettings);
-    const merged = { ...current, ...settings };
+    const merged = {
+      ...current,
+      ...settings,
+      content_blocks: {
+        ...(current.content_blocks || {}),
+        ...(settings.content_blocks || {})
+      },
+      theme_colors: {
+        ...(current.theme_colors || {}),
+        ...(settings.theme_colors || {})
+      },
+      seo_meta: {
+        ...(current.seo_meta || {}),
+        ...(settings.seo_meta || {})
+      }
+    };
     setLocalData('settings', merged);
+    setInCache('settings', merged);
 
+    // 1. Direct Supabase upsert for instant worldwide database persistence
     try {
+      const payload = JSON.parse(JSON.stringify(merged));
+      await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+    } catch (err) {
+      console.warn('Direct Supabase settings upsert notice:', err);
+    }
+
+    // 2. Server PUT endpoint
+    try {
+      const authHeaders = await getAuthHeaders();
       const res = await fetch(apiUrl('/api/settings'), {
         method: 'PUT',
-        headers: await getAuthHeaders(),
+        headers: authHeaders,
         body: JSON.stringify(settings),
       });
       const contentType = res.headers.get('content-type') || '';
@@ -427,7 +481,6 @@ export const api = {
       }
     } catch (e) {}
 
-    setInCache('settings', merged);
     return { success: true, settings: merged };
   },
 
@@ -436,12 +489,30 @@ export const api = {
     const current = getLocalData<SiteSettings>('settings', defaultSiteSettings);
     const updatedBlocks = { ...(current.content_blocks || {}), [key]: value };
     const merged = { ...current, content_blocks: updatedBlocks };
+    if (key === 'header.schoolName' || key === 'footer.schoolName') {
+      merged.school_name = value;
+    } else if (key === 'about.principalName') {
+      merged.principal_name = value;
+    } else if (key === 'about.principalMessage') {
+      merged.principal_message = value;
+    }
     setLocalData('settings', merged);
+    setInCache('settings', merged);
 
+    // 1. Direct Supabase upsert for instant worldwide database persistence
     try {
+      const payload = JSON.parse(JSON.stringify(merged));
+      await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+    } catch (err) {
+      console.warn('Direct Supabase block upsert notice:', err);
+    }
+
+    // 2. Server PUT endpoint
+    try {
+      const authHeaders = await getAuthHeaders();
       const res = await fetch(apiUrl('/api/settings/content-block'), {
         method: 'PUT',
-        headers: await getAuthHeaders(),
+        headers: authHeaders,
         body: JSON.stringify({ key, value }),
       });
       const contentType = res.headers.get('content-type') || '';
@@ -455,7 +526,6 @@ export const api = {
       }
     } catch (e) {}
 
-    setInCache('settings', merged);
     return { success: true, settings: merged };
   },
 

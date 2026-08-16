@@ -17,17 +17,6 @@ export const FacultySection: React.FC = React.memo(() => {
 
   const facultyList = settings?.faculty || [
     {
-      id: 'fac-1',
-      name: 'Dr. R.K. Sharma',
-      designation: 'Principal & Senior PGT',
-      subject: 'Physics & Educational Leadership',
-      qualification: 'Ph.D. in Physics, M.Ed., B.Ed.',
-      experience: '22+ Years Experience',
-      photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600',
-      bio: 'Dedicated to inspiring scholastic excellence and character building at MPS Sikta.',
-      email: 'principal@modelpublicschool.com'
-    },
-    {
       id: 'fac-2',
       name: 'Anjali Verma',
       designation: 'Head of Mathematics (Class 9-12)',
@@ -42,7 +31,7 @@ export const FacultySection: React.FC = React.memo(() => {
       id: 'fac-3',
       name: 'Rajesh Kumar Singh',
       designation: 'Senior PGT Chemistry',
-      subject: 'Chemistry & Science Lab',
+      subject: 'Chemistry & Lab Incharge',
       qualification: 'M.Sc. Organic Chemistry, B.Ed.',
       experience: '10+ Years Experience',
       photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600',

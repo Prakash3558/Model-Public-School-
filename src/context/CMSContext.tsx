@@ -359,43 +359,24 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const fetchSettings = useCallback(async (silent = false) => {
-    // Skip background overwriting if user is actively editing, focused on an input, or edited recently
-    if (silent && (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 10000)) {
+    // Skip background overwriting if user is actively editing or edited recently
+    if (silent && (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 8000)) {
       return;
     }
 
     try {
-      // Use cached settings if available, revalidate in background
+      // 1. Fetch live settings (api.getSettings handles API + direct Supabase fallback)
       const data = await api.getSettings(silent);
-      if (data) {
-        if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 10000) {
+      if (data && data.school_name) {
+        if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 8000) {
           return;
         }
-        // Preserve any recent local changes stored in localStorage
-        const localSaved = localStorage.getItem(LOCAL_STORAGE_KEY);
-        let mergedData = data;
-        if (localSaved) {
-          try {
-            const localParsed = JSON.parse(localSaved);
-            mergedData = {
-              ...data,
-              ...localParsed,
-              content_blocks: {
-                ...(data.content_blocks || {}),
-                ...(localParsed.content_blocks || {})
-              },
-              theme_colors: {
-                ...(data.theme_colors || {}),
-                ...(localParsed.theme_colors || {})
-              }
-            };
-          } catch (e) {}
-        }
+        saveToLocalStorage(data);
         setSettings(prev => {
-          if (prev && JSON.stringify(prev) === JSON.stringify(mergedData)) {
+          if (prev && JSON.stringify(prev) === JSON.stringify(data)) {
             return prev;
           }
-          return mergedData;
+          return data;
         });
       }
     } catch (e) {
@@ -404,28 +385,18 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       try {
         const { data: supaRow } = await supabase.from('site_settings').select('data').eq('id', 1).maybeSingle();
-        if (supaRow && supaRow.data) {
+        if (supaRow && supaRow.data && (supaRow.data as any).school_name) {
           const supabaseSettings = supaRow.data as SiteSettings;
-          if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 10000) {
+          if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 8000) {
             return;
           }
+          saveToLocalStorage(supabaseSettings);
           setSettings(prev => {
             if (prev && JSON.stringify(prev) === JSON.stringify(supabaseSettings)) {
               return prev;
             }
             return supabaseSettings;
           });
-        } else {
-          const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-          if (saved) {
-            const localParsed = JSON.parse(saved);
-            setSettings(prev => {
-              if (prev && JSON.stringify(prev) === JSON.stringify(localParsed)) {
-                return prev;
-              }
-              return localParsed;
-            });
-          }
         }
       } catch (err) {
         // Silent catch for invalid JSON or offline fallback

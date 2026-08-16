@@ -127,7 +127,7 @@ export const AboutSection: React.FC = React.memo(() => {
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-24 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-slate-100 dark:bg-slate-800 flex-shrink-0">
                       <EditableImage
-                        src={settings?.principal_photo || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=600'}
+                        src={settings?.principal_photo || 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700123090_WhatsApp-Image-2026-.png'}
                         alt="Principal Photo"
                         className="w-full h-full object-cover"
                         onSaveImage={handleUpdatePrincipalPhoto}
@@ -140,7 +140,7 @@ export const AboutSection: React.FC = React.memo(() => {
                       <h3 className="text-lg font-bold mt-1 font-heading text-slate-900 dark:text-white">
                         <EditableText
                           blockKey="about.principalName"
-                          defaultText={settings?.principal_name || 'Dr. R.K. Sharma'}
+                          defaultText={settings?.principal_name || 'Mr. Waseem Aalam'}
                         />
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400">Model Public School (MPS Sikta)</p>
