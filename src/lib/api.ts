@@ -458,6 +458,13 @@ export const api = {
     try {
       const payload = JSON.parse(JSON.stringify(merged));
       await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+      
+      const ch = supabase.channel('mps_global_realtime_sync');
+      ch.send({
+        type: 'broadcast',
+        event: 'settings_update',
+        payload: { settings: merged, timestamp: Date.now() }
+      });
     } catch (err) {
       console.warn('Direct Supabase settings upsert notice:', err);
     }
@@ -503,6 +510,13 @@ export const api = {
     try {
       const payload = JSON.parse(JSON.stringify(merged));
       await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+
+      const ch = supabase.channel('mps_global_realtime_sync');
+      ch.send({
+        type: 'broadcast',
+        event: 'settings_update',
+        payload: { settings: merged, timestamp: Date.now() }
+      });
     } catch (err) {
       console.warn('Direct Supabase block upsert notice:', err);
     }

@@ -912,7 +912,17 @@ async function syncSettingsToSupabase(settings: SiteSettings) {
     dbData.settings = cleanSettings;
     saveDB();
     const payload = JSON.parse(JSON.stringify(cleanSettings));
-    await supabase.from('site_settings').upsert({ id: 1, data: payload });
+    await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+    
+    // Broadcast live event to all connected clients
+    try {
+      const channel = supabase.channel('mps_global_realtime_sync');
+      channel.send({
+        type: 'broadcast',
+        event: 'settings_update',
+        payload: { settings: cleanSettings, timestamp: Date.now() }
+      });
+    } catch (e) {}
   } catch (err) {
     checkSupabaseError(err);
   }

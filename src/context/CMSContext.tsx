@@ -52,9 +52,45 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [syncStatus, setSyncStatus] = useState<'synced' | 'saving' | 'saved' | 'error'>('synced');
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
 
-  // Timestamp of the user's last local edit to prevent background polling from wiping out active changes
+  const isMountedRef = useRef<boolean>(true);
   const lastLocalEditTimeRef = useRef<number>(0);
   const savedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const realtimeChannelRef = useRef<any>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    // Cross-tab broadcast channel for instant multi-tab sync
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        broadcastChannelRef.current = new BroadcastChannel('mps_cms_sync');
+        broadcastChannelRef.current.onmessage = (e) => {
+          if (e.data?.settings && isMountedRef.current) {
+            const incoming = e.data.settings;
+            saveToLocalStorage(incoming);
+            setSettings(prev => {
+              if (prev && JSON.stringify(prev) === JSON.stringify(incoming)) return prev;
+              return incoming;
+            });
+          }
+        };
+      }
+    } catch (e) {}
+
+    return () => {
+      isMountedRef.current = false;
+      if (savedTimeoutRef.current) {
+        clearTimeout(savedTimeoutRef.current);
+      }
+      if (broadcastChannelRef.current) {
+        try {
+          broadcastChannelRef.current.close();
+        } catch (e) {}
+      }
+    };
+  }, []);
 
   const saveToLocalStorage = (data: SiteSettings) => {
     try {
@@ -65,7 +101,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const applyThemeAndFonts = useCallback((data: SiteSettings) => {
-    if (!data) return;
+    if (!data || typeof document === 'undefined') return;
     const root = document.documentElement;
     if (data.theme_colors) {
       root.style.setProperty('--color-primary', data.theme_colors.primary || '#1e3a8a');
@@ -359,6 +395,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const fetchSettings = useCallback(async (silent = false) => {
+    if (!isMountedRef.current) return;
     // Skip background overwriting if user is actively editing or edited recently
     if (silent && (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 8000)) {
       return;
@@ -367,6 +404,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       // 1. Fetch live settings (api.getSettings handles API + direct Supabase fallback)
       const data = await api.getSettings(silent);
+      if (!isMountedRef.current) return;
       if (data && data.school_name) {
         if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 8000) {
           return;
@@ -385,6 +423,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       try {
         const { data: supaRow } = await supabase.from('site_settings').select('data').eq('id', 1).maybeSingle();
+        if (!isMountedRef.current) return;
         if (supaRow && supaRow.data && (supaRow.data as any).school_name) {
           const supabaseSettings = supaRow.data as SiteSettings;
           if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 8000) {
@@ -402,8 +441,8 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         // Silent catch for invalid JSON or offline fallback
       }
     } finally {
-      if (!silent) {
-        setLoading(false);
+      if (!silent && isMountedRef.current) {
+        setLoading(prev => prev ? false : prev);
       }
     }
   }, []);
@@ -417,26 +456,55 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [settings, applyThemeAndFonts, applyDOMMetadata]);
 
   useEffect(() => {
+    // Run initial fetch on mount
     fetchSettings();
 
-    // 1. Direct Supabase real-time listener for site_settings table
-    let settingsChannel: any = null;
+    // 1. Supabase Real-Time Broadcast & Postgres Listener for instantaneous multi-device sync
+    let channel: any = null;
     try {
-      settingsChannel = supabase
-        .channel('public:site_settings')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload: any) => {
-          if (payload.new && (payload.new as any).data) {
-            const supabaseData = (payload.new as any).data as SiteSettings;
-            if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 10000) {
+      channel = supabase.channel('mps_global_realtime_sync', {
+        config: { broadcast: { self: false } }
+      });
+      realtimeChannelRef.current = channel;
+
+      channel
+        .on('broadcast', { event: 'settings_update' }, (payload: any) => {
+          if (!isMountedRef.current) return;
+          const incoming = payload?.payload?.settings || payload?.settings;
+          if (incoming && incoming.school_name) {
+            if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 3000) {
               return;
             }
-            setSettings(prev => {
-              if (prev && JSON.stringify(prev) === JSON.stringify(supabaseData)) {
-                return prev;
-              }
-              return supabaseData;
-            });
-            setLoading(false);
+            saveToLocalStorage(incoming);
+            setTimeout(() => {
+              if (!isMountedRef.current) return;
+              setSettings(prev => {
+                if (prev && JSON.stringify(prev) === JSON.stringify(incoming)) {
+                  return prev;
+                }
+                return incoming;
+              });
+              setLoading(prev => prev ? false : prev);
+            }, 0);
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload: any) => {
+          if (!isMountedRef.current) return;
+          if (payload.new && (payload.new as any).data) {
+            const supabaseData = (payload.new as any).data as SiteSettings;
+            if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 3000) {
+              return;
+            }
+            setTimeout(() => {
+              if (!isMountedRef.current) return;
+              setSettings(prev => {
+                if (prev && JSON.stringify(prev) === JSON.stringify(supabaseData)) {
+                  return prev;
+                }
+                return supabaseData;
+              });
+              setLoading(prev => prev ? false : prev);
+            }, 0);
           }
         })
         .subscribe();
@@ -444,37 +512,57 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn('Supabase channel subscription init notice:', err);
     }
 
-    // 2. Live Background Polling every 30 seconds for backend API sync
+    // 2. Background Polling every 10 seconds for persistent sync catch-up
     const pollInterval = setInterval(() => {
-      fetchSettings(true);
-    }, 30000);
+      if (isMountedRef.current && Date.now() - lastLocalEditTimeRef.current > 5000) {
+        fetchSettings(true);
+      }
+    }, 10000);
 
-    // 3. Refresh whenever window regains focus or visibility
+    // 3. Refresh whenever window regains focus, visibility or reconnects online
     const handleFocus = () => {
-      setTimeout(() => fetchSettings(true), 0);
+      setTimeout(() => {
+        if (isMountedRef.current && Date.now() - lastLocalEditTimeRef.current > 3000) {
+          fetchSettings(true);
+        }
+      }, 0);
     };
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        setTimeout(() => fetchSettings(true), 0);
+        setTimeout(() => {
+          if (isMountedRef.current && Date.now() - lastLocalEditTimeRef.current > 3000) {
+            fetchSettings(true);
+          }
+        }, 0);
       }
+    };
+    const handleOnline = () => {
+      setTimeout(() => {
+        if (isMountedRef.current) fetchSettings(true);
+      }, 0);
     };
     const handleCustomUpdate = () => {
       if (Date.now() - lastLocalEditTimeRef.current < 3000) return;
-      setTimeout(() => fetchSettings(true), 0);
+      setTimeout(() => {
+        if (isMountedRef.current) fetchSettings(true);
+      }, 0);
     };
 
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
     window.addEventListener('mps_settings_updated', handleCustomUpdate);
     window.addEventListener('storage', handleCustomUpdate);
 
     return () => {
-      if (settingsChannel) {
-        supabase.removeChannel(settingsChannel);
+      if (channel) {
+        supabase.removeChannel(channel);
+        realtimeChannelRef.current = null;
       }
       clearInterval(pollInterval);
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
       window.removeEventListener('mps_settings_updated', handleCustomUpdate);
       window.removeEventListener('storage', handleCustomUpdate);
     };
@@ -529,26 +617,51 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       saveToLocalStorage(target);
       setTimeout(() => window.dispatchEvent(new Event('mps_settings_updated')), 0);
 
-      // Direct Supabase upsert for client-side persistence
+      // 1. Cross-tab local broadcast
       try {
-        const payload = JSON.parse(JSON.stringify(target));
-        await supabase.from('site_settings').upsert({ id: 1, data: payload });
+        broadcastChannelRef.current?.postMessage({ settings: target });
       } catch (e) {}
 
-      // Async backend update
+      // 2. Global Supabase Realtime Broadcast to every connected browser worldwide (<50ms latency)
+      try {
+        realtimeChannelRef.current?.send({
+          type: 'broadcast',
+          event: 'settings_update',
+          payload: { settings: target, timestamp: editTimestamp }
+        });
+      } catch (e) {}
+
+      // 3. Direct Supabase Cloud Database upsert for durable persistent storage
+      try {
+        const payload = JSON.parse(JSON.stringify(target));
+        await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+      } catch (e) {}
+
+      // 4. Async backend server update
       try {
         const res = await api.updateSettings(target);
-        setSyncStatus('saved');
-        setLastSavedAt(Date.now());
-        if (res && res.settings && lastLocalEditTimeRef.current <= editTimestamp) {
-          saveToLocalStorage(res.settings);
-          setSettings(res.settings);
+        if (isMountedRef.current) {
+          setSyncStatus('saved');
+          setLastSavedAt(Date.now());
+          if (res && res.settings && lastLocalEditTimeRef.current <= editTimestamp) {
+            saveToLocalStorage(res.settings);
+            setSettings(prev => {
+              if (prev && JSON.stringify(prev) === JSON.stringify(res.settings)) {
+                return prev;
+              }
+              return res.settings;
+            });
+          }
+          if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+          savedTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) setSyncStatus('synced');
+          }, 3000);
         }
-        if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
-        savedTimeoutRef.current = setTimeout(() => setSyncStatus('synced'), 3000);
       } catch (err) {
         console.error('Supabase settings sync error:', err);
-        setSyncStatus('error');
+        if (isMountedRef.current) {
+          setSyncStatus('error');
+        }
       }
     }
   }, []);
@@ -582,19 +695,51 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       saveToLocalStorage(target);
       setTimeout(() => window.dispatchEvent(new Event('mps_settings_updated')), 0);
 
+      // 1. Cross-tab local broadcast
+      try {
+        broadcastChannelRef.current?.postMessage({ settings: target });
+      } catch (e) {}
+
+      // 2. Global Supabase Realtime Broadcast
+      try {
+        realtimeChannelRef.current?.send({
+          type: 'broadcast',
+          event: 'settings_update',
+          payload: { settings: target, timestamp: editTimestamp }
+        });
+      } catch (e) {}
+
+      // 3. Direct Supabase Cloud Database upsert
+      try {
+        const payload = JSON.parse(JSON.stringify(target));
+        await supabase.from('site_settings').upsert({ id: 1, data: payload, updated_at: new Date().toISOString() });
+      } catch (e) {}
+
+      // 4. Server API update
       try {
         const res = await api.updateContentBlock(key, value);
-        setSyncStatus('saved');
-        setLastSavedAt(Date.now());
-        if (res && res.settings && lastLocalEditTimeRef.current <= editTimestamp) {
-          saveToLocalStorage(res.settings);
-          setSettings(res.settings);
+        if (isMountedRef.current) {
+          setSyncStatus('saved');
+          setLastSavedAt(Date.now());
+          if (res && res.settings && lastLocalEditTimeRef.current <= editTimestamp) {
+            saveToLocalStorage(res.settings);
+            setSettings(prev => {
+              if (prev && JSON.stringify(prev) === JSON.stringify(res.settings)) {
+                return prev;
+              }
+              return res.settings;
+            });
+          }
+          if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+          savedTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) setSyncStatus('synced');
+          }, 3000);
         }
-        if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
-        savedTimeoutRef.current = setTimeout(() => setSyncStatus('synced'), 3000);
       } catch (err) {
-        console.error('Firestore content block sync error:', err);
-        setSyncStatus('error');
+        console.error('Content block sync error:', err);
+        if (isMountedRef.current) {
+          setSyncStatus('error');
+        }
       }
     }
   }, []);
