@@ -2204,25 +2204,6 @@ export const api = {
 
   // UNIVERSAL SUPABASE SYNCHRONIZATION
   async syncAllToSupabase(): Promise<{ success: boolean; seededCount?: number; message: string; errors?: string[] }> {
-    // 1. Try Backend API first
-    try {
-      const authHeaders = await getAuthHeaders();
-      const res = await fetch(apiUrl('/api/admin/force-seed-supabase'), {
-        method: 'POST',
-        headers: authHeaders
-      });
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data && data.success) {
-          return data;
-        }
-      }
-    } catch (err) {
-      console.warn('Backend Supabase sync endpoint unavailable, executing client-side synchronization:', err);
-    }
-
-    // 2. Direct Client-Side Supabase Synchronization (100% resilient across all deployment environments)
     try {
       let count = 0;
       const errors: string[] = [];
