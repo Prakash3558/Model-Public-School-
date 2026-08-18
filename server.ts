@@ -853,38 +853,112 @@ function mapCollectionToSupabaseTable(colName: string): string {
   return map[colName] || colName;
 }
 
-async function syncItemToSupabase(colName: string, item: any) {
-  if (!item || !item.id) return;
+async function syncItemToSupabase(colName: string, item: any): Promise<{ success: boolean; error?: string }> {
+  if (!item || !item.id) return { success: false, error: 'Missing item id' };
   try {
     const cleanItem = await extractAndSaveBase64ImagesInObject(item);
     const tableName = mapCollectionToSupabaseTable(colName);
-    
-    // Test if ID is a valid UUID format
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(cleanItem.id));
-    
-    let payload: any = { data: cleanItem, ...cleanItem };
-    if (isUuid) {
-      payload.id = String(cleanItem.id);
-    } else {
-      // Map custom keys for tables with specific column expectations
-      if (tableName === 'students') {
-        payload.student_id = String(cleanItem.id);
-        payload.full_name = cleanItem.name || cleanItem.fullName || cleanItem.full_name || 'Student';
-      } else if (tableName === 'teachers') {
-        payload.teacher_id = String(cleanItem.id);
-        payload.full_name = cleanItem.name || cleanItem.fullName || cleanItem.full_name || 'Teacher';
-      }
-      delete payload.id;
+    const itemId = String(cleanItem.id);
+
+    // Build standard payload with JSONB data and top-level fields
+    let payload: any = {
+      id: itemId,
+      data: cleanItem,
+      updated_at: new Date().toISOString()
+    };
+
+    // Specific table column mappings matching schema
+    if (tableName === 'students') {
+      payload.student_id = itemId;
+      payload.name = cleanItem.name || 'Student';
+      payload.full_name = cleanItem.name || 'Student';
+      payload.roll_no = cleanItem.rollNo || cleanItem.roll_no || '';
+      payload.class = cleanItem.class || '';
+      payload.section = cleanItem.section || '';
+      payload.phone = cleanItem.phone || '';
+      payload.email = cleanItem.email || '';
+      payload.parent_name = cleanItem.parentName || cleanItem.parent_name || '';
+      payload.address = cleanItem.address || '';
+    } else if (tableName === 'teachers') {
+      payload.teacher_id = itemId;
+      payload.name = cleanItem.name || 'Teacher';
+      payload.full_name = cleanItem.name || 'Teacher';
+      payload.username = cleanItem.username || '';
+      payload.phone = cleanItem.phone || '';
+      payload.email = cleanItem.email || '';
+      payload.subject = cleanItem.subject || '';
+      payload.assigned_class = cleanItem.assignedClass || cleanItem.assigned_class || '';
+      payload.assigned_section = cleanItem.assignedSection || cleanItem.assigned_section || '';
+    } else if (tableName === 'notice_board') {
+      payload.title = cleanItem.title || 'Notice';
+      payload.content = cleanItem.content || '';
+      payload.category = cleanItem.category || 'Urgent';
+      payload.target_class = cleanItem.targetClass || cleanItem.target_class || 'All';
+      payload.is_urgent_ticker = Boolean(cleanItem.isUrgentTicker ?? cleanItem.is_urgent_ticker);
+      payload.date = cleanItem.date || new Date().toISOString().split('T')[0];
+      payload.posted_by = cleanItem.postedBy || cleanItem.posted_by || 'Administration';
+    } else if (tableName === 'homework') {
+      payload.class = cleanItem.class || 'All';
+      payload.section = cleanItem.section || 'All';
+      payload.subject = cleanItem.subject || 'General';
+      payload.title = cleanItem.title || 'Homework';
+      payload.description = cleanItem.description || '';
+      payload.due_date = cleanItem.dueDate || cleanItem.due_date || '';
+      payload.priority = cleanItem.priority || 'Medium';
+      payload.teacher_name = cleanItem.teacherName || cleanItem.teacher_name || 'Teacher';
+    } else if (tableName === 'online_classes') {
+      payload.class = cleanItem.class || 'All';
+      payload.section = cleanItem.section || 'A';
+      payload.subject = cleanItem.subject || 'General';
+      payload.title = cleanItem.title || 'Online Class';
+      payload.start_time = cleanItem.startTime || cleanItem.start_time || '';
+      payload.end_time = cleanItem.endTime || cleanItem.end_time || '';
+      payload.zoom_url = cleanItem.zoomUrl || cleanItem.zoom_url || '';
+      payload.passcode = cleanItem.passcode || '';
+      payload.meeting_id = cleanItem.meetingId || cleanItem.meeting_id || '';
+      payload.status = cleanItem.status || 'Scheduled';
+      payload.teacher_name = cleanItem.teacherName || cleanItem.teacher_name || 'Teacher';
+    } else if (tableName === 'attendance') {
+      payload.student_id = cleanItem.studentId || cleanItem.student_id || itemId;
+      payload.student_name = cleanItem.studentName || cleanItem.student_name || '';
+      payload.class = cleanItem.class || '';
+      payload.section = cleanItem.section || '';
+      payload.date = cleanItem.date || new Date().toISOString().split('T')[0];
+      payload.status = cleanItem.status || 'Present';
+      payload.remarks = cleanItem.remarks || '';
+    } else if (tableName === 'exam_results') {
+      payload.student_id = cleanItem.studentId || cleanItem.student_id || itemId;
+      payload.student_name = cleanItem.studentName || cleanItem.student_name || '';
+      payload.class = cleanItem.class || '';
+      payload.section = cleanItem.section || '';
+      payload.exam_type = cleanItem.examType || cleanItem.exam_type || 'Annual Exam';
+      payload.subjects = cleanItem.subjects || [];
+      payload.total_marks = cleanItem.totalMarks || cleanItem.total_marks || 0;
+      payload.percentage = cleanItem.percentage || 0;
+      payload.grade = cleanItem.grade || '';
+      payload.remarks = cleanItem.remarks || '';
+    } else if (tableName === 'admissions') {
+      payload.student_name = cleanItem.studentName || cleanItem.student_name || 'Applicant';
+      payload.parent_name = cleanItem.parentName || cleanItem.parent_name || 'Parent';
+      payload.class_applying = cleanItem.classApplying || cleanItem.class_applying || 'Nursery';
+      payload.phone = cleanItem.phone || '';
+      payload.email = cleanItem.email || '';
+      payload.address = cleanItem.address || '';
+      payload.status = cleanItem.status || 'Pending';
+    } else if (tableName === 'media_gallery') {
+      payload.title = cleanItem.title || 'Photo';
+      payload.url = cleanItem.url || '';
+      payload.category = cleanItem.category || 'Campus';
+      payload.caption = cleanItem.caption || '';
     }
 
-    const { error } = await supabase.from(tableName).upsert(payload);
+    const { error } = await supabase.from(tableName).upsert(payload, { onConflict: 'id' });
     if (error) {
-      // If schema mismatch occurs, retry upsert with standard id or data-only fallback
-      const fallbackPayload: any = { data: cleanItem, ...cleanItem };
-      if (!isUuid) delete fallbackPayload.id;
-      const { error: retryErr } = await supabase.from(tableName).upsert(fallbackPayload);
-      if (retryErr) {
-        checkSupabaseError(retryErr);
+      // Fallback with minimal payload if full payload had an extra column mismatch
+      const { error: fallbackErr } = await supabase.from(tableName).upsert({ id: itemId, data: cleanItem }, { onConflict: 'id' });
+      if (fallbackErr) {
+        console.warn(`[Supabase sync notice] table ${tableName}:`, fallbackErr.message);
+        return { success: false, error: fallbackErr.message };
       }
     }
 
@@ -897,8 +971,11 @@ async function syncItemToSupabase(colName: string, item: any) {
         payload: { table: tableName, eventType: 'UPDATE', data: cleanItem, timestamp: Date.now() }
       });
     } catch (e) {}
-  } catch (err) {
+
+    return { success: true };
+  } catch (err: any) {
     checkSupabaseError(err);
+    return { success: false, error: err?.message || String(err) };
   }
 }
 
@@ -1085,14 +1162,27 @@ async function loadDBFromSupabase() {
   }
 }
 
-async function forceSeedAllDataToSupabase() {
+async function forceSeedAllDataToSupabase(): Promise<{ success: boolean; seededCount: number; errors: string[]; message: string }> {
+  const errors: string[] = [];
+  let seededCount = 0;
   try {
     console.log('[Supabase] Force seeding all demo and web data to Supabase...');
+    
     // 1. Settings
-    await syncSettingsToSupabase(dbData.settings);
+    try {
+      await syncSettingsToSupabase(dbData.settings);
+      seededCount++;
+    } catch (e: any) {
+      errors.push(`site_settings: ${e?.message || e}`);
+    }
 
     // 2. Admin credentials
-    await syncAdminAuthToSupabase(dbData.adminAuth);
+    try {
+      await syncAdminAuthToSupabase(dbData.adminAuth);
+      seededCount++;
+    } catch (e: any) {
+      errors.push(`admin_auth: ${e?.message || e}`);
+    }
 
     // 3. All collections
     const collectionsToSeed = [
@@ -1126,14 +1216,31 @@ async function forceSeedAllDataToSupabase() {
       if (Array.isArray(items)) {
         for (const item of items) {
           if (item && item.id) {
-            await syncItemToSupabase(entry.col, item);
+            const res = await syncItemToSupabase(entry.col, item);
+            if (res.success) {
+              seededCount++;
+            } else if (res.error) {
+              errors.push(`${entry.col} [${item.id}]: ${res.error}`);
+            }
           }
         }
       }
     }
-    console.log('[Supabase] All demo users, settings, and tables successfully seeded!');
-  } catch (err) {
+    console.log(`[Supabase] All demo users, settings, and tables seeded (${seededCount} items).`);
+    return {
+      success: true,
+      seededCount,
+      errors,
+      message: `Successfully synchronized ${seededCount} records to Supabase.`
+    };
+  } catch (err: any) {
     console.error('[Supabase] Error during force seed:', err);
+    return {
+      success: false,
+      seededCount,
+      errors: [err?.message || String(err)],
+      message: err?.message || 'Error syncing data to Supabase'
+    };
   }
 }
 
@@ -2859,6 +2966,34 @@ app.post('/api/finance/advances', (req, res) => {
   res.json({ success: true, advance: item });
 });
 
+// Admin Supabase Synchronization & Diagnostics Endpoints
+app.post(['/api/admin/force-seed-supabase', '/api/admin/sync-supabase'], async (req, res) => {
+  try {
+    const result = await forceSeedAllDataToSupabase();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      seededCount: 0,
+      errors: [err?.message || String(err)],
+      message: err?.message || 'Failed to sync with Supabase'
+    });
+  }
+});
+
+app.get('/api/admin/supabase-status', async (req, res) => {
+  try {
+    const { count, error } = await supabase.from('site_settings').select('*', { count: 'exact', head: true });
+    res.json({
+      connected: !error,
+      error: error ? error.message : null,
+      supabaseUrl: SUPABASE_URL
+    });
+  } catch (err: any) {
+    res.json({ connected: false, error: err?.message || 'Cannot reach Supabase endpoint' });
+  }
+});
+
 
 // SQL Schema Export endpoint for user self-hosting / Supabase migration
 app.get('/api/export-sql', (req, res) => {
@@ -3156,6 +3291,15 @@ Safety & Pedagogical Boundaries:
       details: err?.message || 'Server error'
     });
   }
+});
+
+// Global API Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[Global Express API Error]:', err);
+  res.status(500).json({
+    success: false,
+    error: err?.message || 'Internal Server Error'
+  });
 });
 
 // Vite Integration

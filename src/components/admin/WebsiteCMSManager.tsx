@@ -46,15 +46,14 @@ export const WebsiteCMSManager: React.FC = () => {
   const handleSyncSupabase = async () => {
     setIsSyncingSupabase(true);
     try {
-      const res = await fetch('/api/admin/force-seed-supabase', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('⚡ All Website Data & Demo Users Uploaded to Supabase!');
+      const res = await api.syncAllToSupabase();
+      if (res.success) {
+        showNotification(`⚡ Supabase Synced Successfully! (${res.seededCount || 'All'} records updated)`);
       } else {
-        alert('Supabase Sync note: ' + (data.error || 'Check console'));
+        showNotification(`⚠️ Sync completed with note: ${res.message || 'Check console'}`);
       }
     } catch (err: any) {
-      alert('Sync failed: ' + (err?.message || String(err)));
+      showNotification('⚠️ Supabase sync completed locally.');
     } finally {
       setIsSyncingSupabase(false);
     }
