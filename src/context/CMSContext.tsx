@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { broadcastRealtimeChange } from '../lib/realtime';
 import { SiteSettings } from '../types';
 import { api, defaultSiteSettings } from '../lib/api';
 
@@ -461,7 +462,53 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 1. Supabase Real-Time Broadcast & Postgres Listener for instantaneous multi-device sync
     let channel: any = null;
+    let topicChannel: any = null;
     try {
+      // Subscribe to public:site_settings topic with private config
+      topicChannel = supabase.channel('public:site_settings', {
+        config: { private: true }
+      });
+
+      const handleIncomingSettings = (incoming: any) => {
+        if (!isMountedRef.current) return;
+        if (incoming && incoming.school_name) {
+          if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 3000) {
+            return;
+          }
+          saveToLocalStorage(incoming);
+          setTimeout(() => {
+            if (!isMountedRef.current) return;
+            setSettings(prev => {
+              if (prev && JSON.stringify(prev) === JSON.stringify(incoming)) {
+                return prev;
+              }
+              return incoming;
+            });
+            setLoading(prev => prev ? false : prev);
+          }, 0);
+        }
+      };
+
+      topicChannel
+        .on('broadcast', { event: '*' }, (payload: any) => {
+          console.log('[CMSContext] Broadcast * on public:site_settings:', payload);
+          const incoming = payload?.payload?.settings || payload?.payload?.data || payload?.payload || payload?.settings || payload?.data;
+          handleIncomingSettings(incoming);
+        })
+        .on('broadcast', { event: 'settings_update' }, (payload: any) => {
+          console.log('[CMSContext] Broadcast settings_update on public:site_settings:', payload);
+          const incoming = payload?.payload?.settings || payload?.settings;
+          handleIncomingSettings(incoming);
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload: any) => {
+          console.log('[CMSContext] Postgres change on site_settings:', payload);
+          if (payload.new && (payload.new as any).data) {
+            const supabaseData = (payload.new as any).data as SiteSettings;
+            handleIncomingSettings(supabaseData);
+          }
+        })
+        .subscribe();
+
       channel = supabase.channel('mps_global_realtime_sync', {
         config: { broadcast: { self: false } }
       });
@@ -469,42 +516,13 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       channel
         .on('broadcast', { event: 'settings_update' }, (payload: any) => {
-          if (!isMountedRef.current) return;
           const incoming = payload?.payload?.settings || payload?.settings;
-          if (incoming && incoming.school_name) {
-            if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 3000) {
-              return;
-            }
-            saveToLocalStorage(incoming);
-            setTimeout(() => {
-              if (!isMountedRef.current) return;
-              setSettings(prev => {
-                if (prev && JSON.stringify(prev) === JSON.stringify(incoming)) {
-                  return prev;
-                }
-                return incoming;
-              });
-              setLoading(prev => prev ? false : prev);
-            }, 0);
-          }
+          handleIncomingSettings(incoming);
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload: any) => {
-          if (!isMountedRef.current) return;
           if (payload.new && (payload.new as any).data) {
             const supabaseData = (payload.new as any).data as SiteSettings;
-            if (isEditingDOM() || Date.now() - lastLocalEditTimeRef.current < 3000) {
-              return;
-            }
-            setTimeout(() => {
-              if (!isMountedRef.current) return;
-              setSettings(prev => {
-                if (prev && JSON.stringify(prev) === JSON.stringify(supabaseData)) {
-                  return prev;
-                }
-                return supabaseData;
-              });
-              setLoading(prev => prev ? false : prev);
-            }, 0);
+            handleIncomingSettings(supabaseData);
           }
         })
         .subscribe();
@@ -558,6 +576,9 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (channel) {
         supabase.removeChannel(channel);
         realtimeChannelRef.current = null;
+      }
+      if (topicChannel) {
+        supabase.removeChannel(topicChannel);
       }
       clearInterval(pollInterval);
       window.removeEventListener('focus', handleFocus);
@@ -624,6 +645,7 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // 2. Global Supabase Realtime Broadcast to every connected browser worldwide (<50ms latency)
       try {
+        broadcastRealtimeChange('site_settings', 'UPDATE', { settings: target });
         realtimeChannelRef.current?.send({
           type: 'broadcast',
           event: 'settings_update',

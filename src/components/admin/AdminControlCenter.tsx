@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCMS } from '../../context/CMSContext';
 import { api } from '../../lib/api';
+import { useSupabaseRealtimeRefresh } from '../../hooks/useSupabaseRealtimeRefresh';
 import { CountryPhoneInput } from '../common/CountryPhoneInput';
 import { CaptchaWidget } from '../common/CaptchaWidget';
 import { Teacher, Student, Notice, AdmissionApplication, OnlineClass, OnlineExam } from '../../types';
@@ -17,7 +18,7 @@ import {
 
 export const AdminControlCenter: React.FC = () => {
   const { user, loginUser, logout, isEditMode, toggleEditMode } = useAuth();
-  const { settings } = useCMS();
+  const { settings, updateSettings } = useCMS();
 
   // Navigation state
   const [activeTab, setActiveTab] = useState<
@@ -91,6 +92,7 @@ export const AdminControlCenter: React.FC = () => {
   });
 
   const [showNoticeModal, setShowNoticeModal] = useState(false);
+  const [editingNotice, setEditingNotice] = useState<Notice | null>(null);
   const [newNotice, setNewNotice] = useState({
     title: '',
     content: '',
@@ -99,11 +101,33 @@ export const AdminControlCenter: React.FC = () => {
     isUrgentTicker: true
   });
 
+  // Global Realtime Refresh hook for Admin Control Center
+  const adminTopics = [
+    'public:teachers',
+    'public:students',
+    'public:notice_board',
+    'public:online_classes',
+    'public:fee_records',
+    'public:media_gallery',
+    'public:site_settings'
+  ] as const;
+
+  const { refreshCount } = useSupabaseRealtimeRefresh(
+    adminTopics,
+    useCallback((event) => {
+      if (user?.role === 'admin') {
+        console.log(`[AdminControlCenter] Realtime broadcast on ${event.topic} received -> refreshing admin tables`);
+        loadAdminData();
+      }
+    }, [user]),
+    user?.role === 'admin'
+  );
+
   useEffect(() => {
     if (user?.role === 'admin') {
       loadAdminData();
     }
-  }, [user]);
+  }, [user, refreshCount]);
 
   // Online Classes & Exams Admin State
   const [adminOnlineClasses, setAdminOnlineClasses] = useState<OnlineClass[]>([]);
@@ -1087,6 +1111,129 @@ export const AdminControlCenter: React.FC = () => {
           {/* TAB 4: NOTICES */}
           {activeTab === 'notices' && (
             <div className="space-y-6">
+              {/* TOP BANNER QUICK CUSTOMIZER CARD */}
+              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 border border-slate-700 shadow-xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
+                      <Megaphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-base font-extrabold text-white">Top Website Announcement Banner</h4>
+                      <p className="text-xs text-slate-400">Controls the marquee headline bar appearing at the very top of all public pages</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = settings?.notice_banner || {
+                          enabled: true,
+                          badgeText: 'Notice',
+                          badgeColor: 'rose',
+                          useLiveNotices: true,
+                          customText: '',
+                          isMarquee: true,
+                          speed: 'normal'
+                        };
+                        updateSettings({
+                          notice_banner: {
+                            ...current,
+                            enabled: !(current.enabled ?? true)
+                          }
+                        });
+                      }}
+                      className={`px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition-all ${
+                        (settings?.notice_banner?.enabled ?? true)
+                          ? 'bg-emerald-500 text-slate-950 shadow-md'
+                          : 'bg-slate-700 text-slate-300'
+                      }`}
+                    >
+                      {(settings?.notice_banner?.enabled ?? true) ? '● Banner Visible' : '○ Banner Hidden'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Quick Banner Config Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">Badge Text</label>
+                    <input
+                      type="text"
+                      value={settings?.notice_banner?.badgeText || 'Notice'}
+                      onChange={e => {
+                        const current = settings?.notice_banner || {
+                          enabled: true,
+                          badgeText: 'Notice',
+                          badgeColor: 'rose',
+                          useLiveNotices: true,
+                          customText: '',
+                          isMarquee: true,
+                          speed: 'normal'
+                        };
+                        updateSettings({
+                          notice_banner: { ...current, badgeText: e.target.value }
+                        });
+                      }}
+                      className="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">Content Mode</label>
+                    <select
+                      value={(settings?.notice_banner?.useLiveNotices ?? true) ? 'live' : 'custom'}
+                      onChange={e => {
+                        const current = settings?.notice_banner || {
+                          enabled: true,
+                          badgeText: 'Notice',
+                          badgeColor: 'rose',
+                          useLiveNotices: true,
+                          customText: '',
+                          isMarquee: true,
+                          speed: 'normal'
+                        };
+                        updateSettings({
+                          notice_banner: { ...current, useLiveNotices: e.target.value === 'live' }
+                        });
+                      }}
+                      className="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold text-xs"
+                    >
+                      <option value="live">🌊 Stream Active Ticker Notices</option>
+                      <option value="custom">✍️ Fixed Custom Text</option>
+                    </select>
+                  </div>
+
+                  {!(settings?.notice_banner?.useLiveNotices ?? true) && (
+                    <div className="sm:col-span-6">
+                      <label className="block text-[11px] font-bold text-slate-300 mb-1">Custom Message</label>
+                      <input
+                        type="text"
+                        value={settings?.notice_banner?.customText || ''}
+                        onChange={e => {
+                          const current = settings?.notice_banner || {
+                            enabled: true,
+                            badgeText: 'Notice',
+                            badgeColor: 'rose',
+                            useLiveNotices: false,
+                            customText: '',
+                            isMarquee: true,
+                            speed: 'normal'
+                          };
+                          updateSettings({
+                            notice_banner: { ...current, customText: e.target.value }
+                          });
+                        }}
+                        placeholder="Type custom banner message..."
+                        className="w-full p-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* NOTICE BOARD TABLE */}
               <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-xl space-y-4">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-4">
                   <div>
@@ -1108,10 +1255,10 @@ export const AdminControlCenter: React.FC = () => {
                   {notices.map(n => (
                     <div
                       key={n.id}
-                      className="p-5 bg-slate-800/80 rounded-2xl border border-slate-700/80 flex justify-between items-start gap-4 text-xs"
+                      className="p-5 bg-slate-800/80 rounded-2xl border border-slate-700/80 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs"
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-black text-amber-400 uppercase bg-amber-950/80 border border-amber-800/80 px-2.5 py-0.5 rounded-lg text-[10px]">
                             {n.category}
                           </span>
@@ -1121,20 +1268,48 @@ export const AdminControlCenter: React.FC = () => {
                             </span>
                           )}
                           <span className="text-[11px] text-slate-400">Target: Class {n.targetClass || 'All'}</span>
+                          <span className="text-[11px] text-slate-500">• {n.date}</span>
                         </div>
 
-                        <h4 className="font-extrabold text-white text-base">{n.title}</h4>
-                        <p className="text-slate-300 leading-relaxed">{n.content}</p>
-                        <p className="text-[11px] text-slate-500">Published Date: {n.date}</p>
+                        <h4 className="font-extrabold text-white text-base truncate">{n.title}</h4>
+                        <p className="text-slate-300 leading-relaxed line-clamp-2">{n.content}</p>
                       </div>
 
-                      <button
-                        onClick={() => handleDeleteNotice(n.id)}
-                        className="p-2 bg-rose-950/60 text-rose-400 hover:bg-rose-900 rounded-xl transition-colors"
-                        title="Delete Notice"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* 1-Click Ticker Toggle */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const newStatus = !n.isUrgentTicker;
+                            setNotices(prev => prev.map(item => item.id === n.id ? { ...item, isUrgentTicker: newStatus } : item));
+                            await api.updateNotice(n.id, { isUrgentTicker: newStatus });
+                          }}
+                          className={`px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all flex items-center gap-1.5 ${
+                            n.isUrgentTicker
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-600 hover:bg-rose-500/30'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}
+                        >
+                          <Megaphone className="w-3.5 h-3.5" />
+                          {n.isUrgentTicker ? 'Ticker Active' : 'Enable on Ticker'}
+                        </button>
+
+                        <button
+                          onClick={() => setEditingNotice(n)}
+                          className="p-2 bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-xl transition-colors"
+                          title="Edit Notice"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteNotice(n.id)}
+                          className="p-2 bg-rose-950/60 text-rose-400 hover:bg-rose-900 rounded-xl transition-colors"
+                          title="Delete Notice"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -2181,6 +2356,99 @@ export const AdminControlCenter: React.FC = () => {
                   className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow"
                 >
                   Broadcast Notice
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDIT NOTICE */}
+      {editingNotice && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-800 space-y-4 text-slate-100">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-black font-heading text-white">Edit Announcement Notice</h3>
+              <button
+                onClick={() => setEditingNotice(null)}
+                className="p-1 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form
+              onSubmit={async e => {
+                e.preventDefault();
+                if (!editingNotice) return;
+                setNotices(prev => prev.map(n => n.id === editingNotice.id ? editingNotice : n));
+                await api.updateNotice(editingNotice.id, editingNotice);
+                setEditingNotice(null);
+              }}
+              className="space-y-3 text-xs font-medium"
+            >
+              <div>
+                <label className="block mb-1 text-slate-300 font-bold">Notice Headline Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingNotice.title}
+                  onChange={e => setEditingNotice({ ...editingNotice, title: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-bold"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-slate-300 font-bold">Category</label>
+                <select
+                  value={editingNotice.category}
+                  onChange={e => setEditingNotice({ ...editingNotice, category: e.target.value as any })}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                >
+                  <option value="Urgent">Urgent</option>
+                  <option value="General">General</option>
+                  <option value="Exam">Exam</option>
+                  <option value="Holiday">Holiday</option>
+                  <option value="Event">Event</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-slate-300 font-bold">Notice Details / Content *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={editingNotice.content}
+                  onChange={e => setEditingNotice({ ...editingNotice, content: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-700 bg-slate-800 text-white"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="editUrgentTicker"
+                  checked={editingNotice.isUrgentTicker}
+                  onChange={e => setEditingNotice({ ...editingNotice, isUrgentTicker: e.target.checked })}
+                  className="w-4 h-4 text-amber-500 rounded border-slate-700 bg-slate-800"
+                />
+                <label htmlFor="editUrgentTicker" className="text-xs text-amber-400 font-bold cursor-pointer">
+                  Show in Top Website Announcement Ticker
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingNotice(null)}
+                  className="px-4 py-2 bg-slate-800 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

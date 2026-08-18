@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCMS } from '../../context/CMSContext';
 import { api } from '../../lib/api';
+import { useSupabaseRealtimeRefresh } from '../../hooks/useSupabaseRealtimeRefresh';
 import { CountryPhoneInput, detectUserCountryCode, fetchUserCountryCodeFromIP } from '../common/CountryPhoneInput';
 import {
   Student, Homework, AttendanceRecord, ExamResult, Notice,
@@ -115,15 +116,10 @@ export const StudentPortal: React.FC = () => {
   const [newUpdateReq, setNewUpdateReq] = useState({ field: 'Student Name', oldValue: '', newValue: '' });
   const [updateReqSuccess, setUpdateReqSuccess] = useState('');
 
-  useEffect(() => {
-    if (student) {
-      loadStudentDashboardData(student);
-    }
-  }, [student]);
-
   const loadStudentDashboardData = async (st: Student) => {
     setDataLoading(true);
     try {
+      console.log('[StudentPortal] Loading live student dashboard data...');
       const freshStudent = await api.getStudent(st.id);
       if (freshStudent) {
         updateStudentState(freshStudent);
@@ -180,6 +176,35 @@ export const StudentPortal: React.FC = () => {
       setDataLoading(false);
     }
   };
+
+  // Global Realtime Refresh hook subscribing to student-related Supabase topics
+  const studentTopics = [
+    'public:students',
+    'public:homework',
+    'public:attendance',
+    'public:exam_results',
+    'public:notice_board',
+    'public:online_classes',
+    'public:fee_records',
+    'public:site_settings'
+  ] as const;
+
+  const { refreshCount } = useSupabaseRealtimeRefresh(
+    studentTopics,
+    useCallback((event) => {
+      if (student) {
+        console.log(`[StudentPortal] Realtime broadcast on ${event.topic} received -> refreshing dashboard tables`);
+        loadStudentDashboardData(student);
+      }
+    }, [student]),
+    Boolean(student)
+  );
+
+  useEffect(() => {
+    if (student) {
+      loadStudentDashboardData(student);
+    }
+  }, [student, refreshCount]);
 
   const handleStudentLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -887,6 +887,16 @@ async function syncItemToSupabase(colName: string, item: any) {
         checkSupabaseError(retryErr);
       }
     }
+
+    // Broadcast realtime update to all connected web clients worldwide
+    try {
+      const channel = supabase.channel('mps_global_realtime_sync');
+      channel.send({
+        type: 'broadcast',
+        event: 'table_change',
+        payload: { table: tableName, eventType: 'UPDATE', data: cleanItem, timestamp: Date.now() }
+      });
+    } catch (e) {}
   } catch (err) {
     checkSupabaseError(err);
   }
@@ -899,6 +909,16 @@ async function deleteItemFromSupabase(colName: string, id: string) {
   try {
     const tableName = mapCollectionToSupabaseTable(colName);
     await supabase.from(tableName).delete().eq('id', String(id));
+
+    // Broadcast realtime delete event
+    try {
+      const channel = supabase.channel('mps_global_realtime_sync');
+      channel.send({
+        type: 'broadcast',
+        event: 'table_change',
+        payload: { table: tableName, eventType: 'DELETE', data: { id }, timestamp: Date.now() }
+      });
+    } catch (e) {}
   } catch (err) {
     checkSupabaseError(err);
   }
@@ -2114,18 +2134,30 @@ app.get('/api/notices', (req, res) => {
 
 app.post('/api/notices', (req, res) => {
   const newNotice: Notice = {
-    id: 'n-' + Date.now(),
+    id: req.body.id || 'n-' + Date.now(),
     title: req.body.title,
     content: req.body.content,
     category: req.body.category || 'General',
     targetClass: req.body.targetClass || 'All',
-    date: new Date().toISOString().split('T')[0],
+    date: req.body.date || new Date().toISOString().split('T')[0],
     isUrgentTicker: req.body.isUrgentTicker ?? true
   };
   dbData.notices.unshift(newNotice);
   saveDB();
   syncNoticeToFirestore(newNotice).catch(e => console.error(e));
   res.json({ success: true, notice: newNotice });
+});
+
+app.put('/api/notices/:id', (req, res) => {
+  const idx = dbData.notices.findIndex(n => n.id === req.params.id);
+  if (idx !== -1) {
+    dbData.notices[idx] = { ...dbData.notices[idx], ...req.body };
+    saveDB();
+    syncNoticeToFirestore(dbData.notices[idx]).catch(e => console.error(e));
+    res.json({ success: true, notice: dbData.notices[idx] });
+  } else {
+    res.status(404).json({ error: 'Notice not found' });
+  }
 });
 
 app.delete('/api/notices/:id', (req, res) => {

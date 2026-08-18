@@ -231,6 +231,20 @@ export interface FacultyMember {
   status?: 'Active' | 'On Leave';
 }
 
+export interface NoticeBannerConfig {
+  enabled: boolean;
+  badgeText: string;
+  badgeColor?: 'blue' | 'rose' | 'amber' | 'emerald' | 'purple' | 'indigo' | string;
+  customText: string;
+  useLiveNotices: boolean;
+  linkText?: string;
+  linkUrl?: string;
+  speed?: 'normal' | 'slow' | 'fast';
+  isMarquee?: boolean;
+  backgroundColor?: string;
+  textColor?: string;
+}
+
 export interface SiteSettings {
   school_name: string;
   tagline: string;
@@ -259,6 +273,7 @@ export interface SiteSettings {
   receipt_accountant_name?: string;
   udise_code?: string;
   google_adsense_id?: string;
+  notice_banner?: NoticeBannerConfig;
 }
 
 export interface OnlineClass {

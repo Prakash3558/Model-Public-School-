@@ -13,6 +13,7 @@ const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL_MS = 60000; // 60 seconds default TTL
 
 import { supabase } from './supabase';
+import { broadcastRealtimeChange } from './realtime';
 
 let currentAccessToken: string | null = null;
 
@@ -189,7 +190,18 @@ export const defaultSiteSettings: SiteSettings = {
   faculty: [
     { id: 'fac-2', name: 'Anjali Verma', designation: 'Head of Mathematics Dept', subject: 'Advanced Mathematics', qualification: 'M.Sc. Mathematics, B.Ed. (Gold Medalist)', experience: '14+ Years Experience', photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600', bio: 'Specialist in Olympiad mathematics and conceptual problem-solving techniques.', email: 'anjali.math@modelpublicschool.com' },
     { id: 'fac-3', name: 'Rajesh Kumar Singh', designation: 'Senior PGT Chemistry', subject: 'Chemistry & Lab Incharge', qualification: 'M.Sc. Organic Chemistry, B.Ed.', experience: '10+ Years Experience', photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600', bio: 'Passionate about hands-on experimental chemistry and CBSE board exam coaching.', email: 'rajesh.chem@modelpublicschool.com' }
-  ]
+  ],
+  notice_banner: {
+    enabled: true,
+    badgeText: 'Notice',
+    badgeColor: 'blue',
+    customText: 'Admissions Open for Session 2026-27 (Nursery to Class 10). Online Registration & Entrance Forms Available!',
+    useLiveNotices: true,
+    linkText: 'Apply Now',
+    linkUrl: '#admissions',
+    speed: 'normal',
+    isMarquee: true
+  }
 };
 
 export const defaultTeachers: Teacher[] = [
@@ -797,6 +809,23 @@ export const api = {
     const updated = [newT, ...teachers];
     setLocalData('teachers', updated);
     setInCache('teachers', updated);
+    broadcastRealtimeChange('teachers', 'INSERT', newT);
+
+    try {
+      await supabase.from('teachers').upsert({
+        id: newT.id,
+        teacher_id: newT.id,
+        name: newT.name,
+        full_name: newT.name,
+        username: newT.username,
+        email: newT.email,
+        phone: newT.phone,
+        subject: newT.subject,
+        assigned_class: newT.assignedClass,
+        assigned_section: newT.assignedSection,
+        data: newT
+      });
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl('/api/teachers'), {
@@ -817,6 +846,20 @@ export const api = {
     const updated = teachers.map(t => t.id === id ? { ...t, ...teacher } : t);
     setLocalData('teachers', updated);
     setInCache('teachers', updated);
+    broadcastRealtimeChange('teachers', 'UPDATE', { id, ...teacher });
+
+    try {
+      await supabase.from('teachers').update({
+        name: teacher.name,
+        full_name: teacher.name,
+        phone: teacher.phone,
+        email: teacher.email,
+        subject: teacher.subject,
+        assigned_class: teacher.assignedClass,
+        assigned_section: teacher.assignedSection,
+        data: teacher
+      }).eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/teachers/${id}`), {
@@ -837,6 +880,11 @@ export const api = {
     const updated = teachers.filter(t => t.id !== id);
     setLocalData('teachers', updated);
     setInCache('teachers', updated);
+    broadcastRealtimeChange('teachers', 'DELETE', { id });
+
+    try {
+      await supabase.from('teachers').delete().eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/teachers/${id}`), {
@@ -924,6 +972,24 @@ export const api = {
     const updated = [newS, ...students];
     setLocalData('students', updated);
     setInCache('students', updated);
+    broadcastRealtimeChange('students', 'INSERT', newS);
+
+    try {
+      await supabase.from('students').upsert({
+        id: newS.id,
+        student_id: newS.id,
+        name: newS.name,
+        full_name: newS.name,
+        roll_no: newS.rollNo,
+        class: newS.class,
+        section: newS.section,
+        parent_name: newS.parentName,
+        phone: newS.phone,
+        email: newS.email,
+        address: newS.address,
+        data: newS
+      });
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl('/api/students'), {
@@ -944,6 +1010,22 @@ export const api = {
     const updated = students.map(s => s.id === id ? { ...s, ...student } : s);
     setLocalData('students', updated);
     setInCache('students', updated);
+    broadcastRealtimeChange('students', 'UPDATE', { id, ...student });
+
+    try {
+      await supabase.from('students').update({
+        name: student.name,
+        full_name: student.name,
+        roll_no: student.rollNo,
+        class: student.class,
+        section: student.section,
+        parent_name: student.parentName,
+        phone: student.phone,
+        email: student.email,
+        address: student.address,
+        data: student
+      }).eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/students/${id}`), {
@@ -964,6 +1046,11 @@ export const api = {
     const updated = students.filter(s => s.id !== id);
     setLocalData('students', updated);
     setInCache('students', updated);
+    broadcastRealtimeChange('students', 'DELETE', { id });
+
+    try {
+      await supabase.from('students').delete().eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/students/${id}`), {
@@ -1010,6 +1097,20 @@ export const api = {
     const updated = [newN, ...notices];
     setLocalData('notices', updated);
     setInCache('notices', updated);
+    broadcastRealtimeChange('notice_board', 'INSERT', newN);
+
+    // Direct Supabase table insert / upsert
+    try {
+      await supabase.from('notice_board').upsert({
+        id: newN.id,
+        title: newN.title,
+        content: newN.content,
+        category: newN.category,
+        is_urgent_ticker: newN.isUrgentTicker,
+        date: newN.date,
+        data: newN
+      });
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl('/api/notices'), {
@@ -1024,12 +1125,49 @@ export const api = {
     return { success: true, notice: newN };
   },
 
+  async updateNotice(id: string, notice: Partial<Notice>) {
+    clearApiCache('notices');
+    const notices = getLocalData<Notice[]>('notices', defaultNotices);
+    const updated = notices.map(n => n.id === id ? { ...n, ...notice } : n);
+    setLocalData('notices', updated);
+    setInCache('notices', updated);
+    broadcastRealtimeChange('notice_board', 'UPDATE', { id, ...notice });
+
+    try {
+      await supabase.from('notice_board').update({
+        title: notice.title,
+        content: notice.content,
+        category: notice.category,
+        is_urgent_ticker: notice.isUrgentTicker,
+        date: notice.date,
+        data: notice
+      }).eq('id', id);
+    } catch (e) {}
+
+    try {
+      const res = await fetch(apiUrl(`/api/notices/${id}`), {
+        method: 'PUT',
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(notice),
+      });
+      const contentType = res.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) return await res.json();
+    } catch (e) {}
+
+    return { success: true };
+  },
+
   async deleteNotice(id: string) {
     clearApiCache('notices');
     const notices = getLocalData<Notice[]>('notices', defaultNotices);
     const updated = notices.filter(n => n.id !== id);
     setLocalData('notices', updated);
     setInCache('notices', updated);
+    broadcastRealtimeChange('notice_board', 'DELETE', { id });
+
+    try {
+      await supabase.from('notice_board').delete().eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/notices/${id}`), {
@@ -1176,6 +1314,22 @@ export const api = {
     const updated = [newH, ...all];
     setLocalData('homework', updated);
     setInCache('homework', updated);
+    broadcastRealtimeChange('homework', 'INSERT', newH);
+
+    try {
+      await supabase.from('homework').upsert({
+        id: newH.id,
+        class: newH.class,
+        section: newH.section,
+        subject: newH.subject,
+        title: newH.title,
+        description: newH.description,
+        due_date: newH.dueDate,
+        priority: newH.priority,
+        teacher_name: newH.teacherName,
+        data: newH
+      });
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl('/api/homework'), {
@@ -1196,6 +1350,11 @@ export const api = {
     const updated = all.filter(h => h.id !== id);
     setLocalData('homework', updated);
     setInCache('homework', updated);
+    broadcastRealtimeChange('homework', 'DELETE', { id });
+
+    try {
+      await supabase.from('homework').delete().eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/homework/${id}`), { method: 'DELETE', headers: await getAuthHeaders() });
@@ -1212,6 +1371,20 @@ export const api = {
     const updated = all.map(h => h.id === id ? { ...h, ...homework } : h);
     setLocalData('homework', updated);
     setInCache('homework', updated);
+    broadcastRealtimeChange('homework', 'UPDATE', { id, ...homework });
+
+    try {
+      await supabase.from('homework').update({
+        class: homework.class,
+        section: homework.section,
+        subject: homework.subject,
+        title: homework.title,
+        description: homework.description,
+        due_date: homework.dueDate,
+        priority: homework.priority,
+        data: homework
+      }).eq('id', id);
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl(`/api/homework/${id}`), {
@@ -1259,6 +1432,24 @@ export const api = {
       section: r.section || 'A'
     } as AttendanceRecord)), ...all];
     setLocalData('attendance', updated);
+    broadcastRealtimeChange('attendance', 'INSERT', records);
+
+    try {
+      for (const rec of records) {
+        if (rec.id || rec.studentId) {
+          await supabase.from('attendance').upsert({
+            id: rec.id || `${rec.studentId}_${rec.date}`,
+            student_id: rec.studentId,
+            class: rec.class,
+            section: rec.section,
+            date: rec.date,
+            status: rec.status,
+            remarks: rec.remarks,
+            data: rec
+          });
+        }
+      }
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl('/api/attendance'), {
@@ -1373,6 +1564,26 @@ export const api = {
       ...payload
     };
     setLocalData('online_classes', [newClass, ...all]);
+    broadcastRealtimeChange('online_classes', 'INSERT', newClass);
+
+    try {
+      await supabase.from('online_classes').upsert({
+        id: newClass.id,
+        class: newClass.class,
+        section: newClass.section,
+        subject: newClass.subject,
+        title: newClass.title,
+        teacher_name: newClass.teacherName,
+        start_time: newClass.startTime,
+        end_time: newClass.endTime,
+        date: newClass.date,
+        zoom_url: newClass.zoomUrl,
+        meeting_id: newClass.meetingId,
+        passcode: newClass.passcode,
+        status: newClass.status,
+        data: newClass
+      });
+    } catch (e) {}
 
     try {
       const res = await fetch(apiUrl('/api/online-classes'), { method: 'POST', headers: await getAuthHeaders(), body: JSON.stringify(payload) });
@@ -1385,6 +1596,26 @@ export const api = {
   async updateOnlineClass(id: string, payload: Partial<OnlineClass>) {
     const all = getLocalData<OnlineClass[]>('online_classes', []);
     setLocalData('online_classes', all.map(c => c.id === id ? { ...c, ...payload } : c));
+    broadcastRealtimeChange('online_classes', 'UPDATE', { id, ...payload });
+
+    try {
+      await supabase.from('online_classes').update({
+        class: payload.class,
+        section: payload.section,
+        subject: payload.subject,
+        title: payload.title,
+        teacher_name: payload.teacherName,
+        start_time: payload.startTime,
+        end_time: payload.endTime,
+        date: payload.date,
+        zoom_url: payload.zoomUrl,
+        meeting_id: payload.meetingId,
+        passcode: payload.passcode,
+        status: payload.status,
+        data: payload
+      }).eq('id', id);
+    } catch (e) {}
+
     try {
       const res = await fetch(apiUrl(`/api/online-classes/${id}`), { method: 'PUT', headers: await getAuthHeaders(), body: JSON.stringify(payload) });
       if (res.headers.get('content-type')?.includes('application/json')) return await res.json();
@@ -1394,6 +1625,12 @@ export const api = {
   async deleteOnlineClass(id: string) {
     const all = getLocalData<OnlineClass[]>('online_classes', []);
     setLocalData('online_classes', all.filter(c => c.id !== id));
+    broadcastRealtimeChange('online_classes', 'DELETE', { id });
+
+    try {
+      await supabase.from('online_classes').delete().eq('id', id);
+    } catch (e) {}
+
     try {
       const res = await fetch(apiUrl(`/api/online-classes/${id}`), { method: 'DELETE', headers: await getAuthHeaders() });
       if (res.headers.get('content-type')?.includes('application/json')) return await res.json();

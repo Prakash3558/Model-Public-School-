@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../../lib/api';
+import { useSupabaseRealtimeRefresh } from '../../hooks/useSupabaseRealtimeRefresh';
 import {
   Student, Teacher, SiteSettings, FeeParticularMaster, FeeDiscount, TaxSlab,
   AdvanceFeeRecord, FeeReceiptTemplate, FeeReceiptRecord, FinancialTransaction,
@@ -212,11 +213,9 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
     'T04': { status: 'Pending', amount: 30000, month: 'August 2026' }
   });
 
-  // Load persistent finance data on mount
-  useEffect(() => {
-    let active = true;
+  const loadFinanceData = useCallback(() => {
     api.getFinanceData().then(data => {
-      if (!active || !data) return;
+      if (!data) return;
       if (data.feeReceipts && data.feeReceipts.length > 0) {
         setReceipts(prev => {
           const ids = new Set(data.feeReceipts.map(r => r.id));
@@ -244,8 +243,21 @@ export const SchoolFinanceSystem: React.FC<SchoolFinanceSystemProps> = ({
         setAdvanceRecords(data.advanceRecords);
       }
     }).catch(e => console.warn('Failed to load finance data:', e));
-    return () => { active = false; };
   }, []);
+
+  // Global Realtime Refresh hook for fee_records & teachers
+  const { refreshCount } = useSupabaseRealtimeRefresh(
+    ['public:fee_records', 'public:teachers', 'public:students'],
+    useCallback((event) => {
+      console.log(`[SchoolFinanceSystem] Realtime broadcast on ${event.topic} received -> refreshing finance records`);
+      loadFinanceData();
+    }, [loadFinanceData])
+  );
+
+  // Load persistent finance data on mount & realtime updates
+  useEffect(() => {
+    loadFinanceData();
+  }, [loadFinanceData, refreshCount]);
 
   const toggleTeacherSalaryStatus = async (teacherId: string, defaultAmount: number = 30000) => {
     const current = teacherSalaries[teacherId] || { status: 'Pending' as const, amount: defaultAmount, month: 'August 2026' };

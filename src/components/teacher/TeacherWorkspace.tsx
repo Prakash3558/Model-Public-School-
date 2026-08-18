@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useCMS } from '../../context/CMSContext';
 import { api } from '../../lib/api';
+import { useSupabaseRealtimeRefresh } from '../../hooks/useSupabaseRealtimeRefresh';
 import { downloadElementAsPDF } from '../../lib/pdf';
 import {
   Teacher, Student, AttendanceRecord, ExamResult, Homework, OnlineClass, OnlineExam,
@@ -208,13 +209,35 @@ export const TeacherWorkspace: React.FC = () => {
   const [subjectsList, setSubjectsList] = useState(DEFAULT_SUBJECTS);
   const [teacherRemarks, setTeacherRemarks] = useState('Good academic progress.');
 
+  // Global Realtime Refresh hook for Teacher workspace
+  const teacherTopics = [
+    'public:teachers',
+    'public:students',
+    'public:homework',
+    'public:attendance',
+    'public:exam_results',
+    'public:online_classes',
+    'public:notice_board'
+  ] as const;
+
+  const { refreshCount } = useSupabaseRealtimeRefresh(
+    teacherTopics,
+    useCallback((event) => {
+      if (teacher) {
+        console.log(`[TeacherWorkspace] Realtime broadcast on ${event.topic} received -> refreshing class tables`);
+        loadClassData(selectedClass || teacher.assignedClass || '10', selectedSection || teacher.assignedSection || 'A');
+      }
+    }, [teacher, selectedClass, selectedSection, attendanceDate]),
+    Boolean(teacher)
+  );
+
   useEffect(() => {
     if (teacher) {
       setSelectedClass(teacher.assignedClass || '10');
       setSelectedSection(teacher.assignedSection || 'A');
       loadClassData(teacher.assignedClass || '10', teacher.assignedSection || 'A');
     }
-  }, [teacher]);
+  }, [teacher, refreshCount]);
 
   const loadClassData = async (cls: string, sec: string) => {
     try {
