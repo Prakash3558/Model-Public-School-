@@ -36,7 +36,7 @@ export const AboutSection: React.FC = React.memo(() => {
           </p>
         </div>
 
-        {/* Grid 2 Column: Institution Overview & Principal Desk */}
+        {/* Grid 2 Column: Institution Overview & Director's Desk */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           {/* Left Column: Details & Pillars */}
           <div
@@ -111,7 +111,7 @@ export const AboutSection: React.FC = React.memo(() => {
             </div>
           </div>
 
-          {/* Right Column: Principal's Card (3D Tilt Card) */}
+          {/* Right Column: Director's Card (3D Tilt Card) */}
           <motion.div
             initial={{ opacity: 1, x: 0 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -128,14 +128,14 @@ export const AboutSection: React.FC = React.memo(() => {
                     <div className="w-20 h-24 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm bg-slate-100 dark:bg-slate-800 flex-shrink-0">
                       <EditableImage
                         src={settings?.principal_photo || 'https://neakvyuddcftatlpabmf.supabase.co/storage/v1/object/public/school-uploads/uploads/general/1786700123090_WhatsApp-Image-2026-.png'}
-                        alt="Principal Photo"
+                        alt="Director Photo"
                         className="w-full h-full object-cover"
                         onSaveImage={handleUpdatePrincipalPhoto}
                       />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
-                        Principal's Desk
+                        Director's Desk
                       </span>
                       <h3 className="text-lg font-bold mt-1 font-heading text-slate-900 dark:text-white">
                         <EditableText

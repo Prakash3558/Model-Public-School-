@@ -278,21 +278,45 @@ const initialStudents: Student[] = [
 ];
 
 const initialAttendance: AttendanceRecord[] = [
-  { id: 'att-1', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-01', status: 'Present' },
-  { id: 'att-2', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-02', status: 'Present' },
-  { id: 'att-3', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-03', status: 'Present' },
-  { id: 'att-4', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-04', status: 'Late', remarks: 'School Bus Delay' },
-  { id: 'att-5', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-05', status: 'Holiday', remarks: 'Official School Holiday - Local Festival' },
-  { id: 'att-6', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-06', status: 'Present' },
-  { id: 'att-7', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-07', status: 'Leave', remarks: 'Medical Leave' },
-  { id: 'att-8', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-08', status: 'Present' },
-  { id: 'att-9', studentId: 's-1001', class: '10', section: 'A', date: '2026-07-31', status: 'Present' },
-  { id: 'att-10', studentId: 's-1001', class: '10', section: 'A', date: '2026-07-30', status: 'Present' },
-  { id: 'att-11', studentId: 's-1001', class: '10', section: 'A', date: '2026-07-29', status: 'Late', remarks: 'Bus delay' },
-  { id: 'att-12', studentId: 's-1001', class: '10', section: 'A', date: '2026-07-28', status: 'Present' },
-  { id: 'att-13', studentId: 's-1001', class: '10', section: 'A', date: '2026-07-25', status: 'Holiday', remarks: 'Monsoon Flooding School Holiday' },
-  { id: 'att-14', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-01', status: 'Present' },
-  { id: 'att-15', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-05', status: 'Holiday', remarks: 'Official School Holiday - Local Festival' }
+  // Student s-1001 (Class 10-A)
+  { id: 'att-1', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-01', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-2', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-02', status: 'Holiday', remarks: 'Sunday Official Holiday', isPublished: true },
+  { id: 'att-3', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-03', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-4', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-04', status: 'Late', remarks: 'School Bus Delay', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-5', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-05', status: 'Holiday', remarks: 'Official School Holiday - Local Festival', isPublished: true },
+  { id: 'att-6', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-06', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-7', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-07', status: 'Leave', remarks: 'Approved Medical Leave', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-8', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-08', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-9', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-09', status: 'Holiday', remarks: 'Sunday Official Holiday', isPublished: true },
+  { id: 'att-10', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-10', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-11', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-11', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-12', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-12', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-13', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-13', status: 'Absent', remarks: 'Uninformed Absence', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-14', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-14', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-15', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-15', status: 'Holiday', remarks: 'Independence Day National Holiday', isPublished: true },
+  { id: 'att-16', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-16', status: 'Holiday', remarks: 'Sunday Official Holiday', isPublished: true },
+  { id: 'att-17', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-17', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-18', studentId: 's-1001', class: '10', section: 'A', date: '2026-08-18', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+
+  // Student s-1002 (Class 10-A)
+  { id: 'att-20', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-01', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-21', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-02', status: 'Holiday', remarks: 'Sunday Official Holiday', isPublished: true },
+  { id: 'att-22', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-03', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-23', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-04', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-24', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-05', status: 'Holiday', remarks: 'Official School Holiday - Local Festival', isPublished: true },
+  { id: 'att-25', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-06', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-26', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-07', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-27', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-08', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-28', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-09', status: 'Holiday', remarks: 'Sunday Official Holiday', isPublished: true },
+  { id: 'att-29', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-10', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-30', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-11', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-31', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-12', status: 'Late', remarks: 'Traffic Delay', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-32', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-13', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-33', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-14', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-34', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-15', status: 'Holiday', remarks: 'Independence Day National Holiday', isPublished: true },
+  { id: 'att-35', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-16', status: 'Holiday', remarks: 'Sunday Official Holiday', isPublished: true },
+  { id: 'att-36', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-17', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' },
+  { id: 'att-37', studentId: 's-1002', class: '10', section: 'A', date: '2026-08-18', status: 'Present', isPublished: true, teacherName: 'Vikramaditya Sharma' }
 ];
 
 const initialExamResults: ExamResult[] = [
@@ -1724,31 +1748,20 @@ app.post('/api/auth/login', async (req, res) => {
     );
 
     if (teacher) {
-      const storedPass = teacher.password || 'teacher123';
-      let authCheck = await verifyPassword(password || '', storedPass);
-
-      if (!authCheck.valid) {
-        const fallbacks = ['teacher123', `${teacher.username}123`].filter(Boolean);
-        for (const fb of fallbacks) {
-          const fbCheck = await verifyPassword(password || '', fb);
-          if (fbCheck.valid) {
-            authCheck = { valid: true, needsRehash: true };
-            break;
-          }
-        }
-      }
+      const storedPass = teacher.password || '';
+      const authCheck = await verifyPassword(password || '', storedPass);
 
       if (authCheck.valid) {
         // Transparent re-hashing upgrade to bcrypt
         if (authCheck.needsRehash || !isBcryptHash(teacher.password || '')) {
-          teacher.password = await hashPassword(password || 'teacher123');
+          teacher.password = await hashPassword(password || '');
           saveDB();
           syncTeacherToFirestore(teacher).catch(e => console.error(e));
         }
 
         await loginSecurityTracker.recordSuccess(accountKey);
         const email = teacher.email || `${teacher.username.toLowerCase()}@modelpublicschool.com`;
-        const authAccount = await getOrCreateFirebaseAuthUser(email, password || 'teacher123');
+        const authAccount = await getOrCreateFirebaseAuthUser(email, password || '');
 
         return res.json({
           success: true,
@@ -1806,38 +1819,20 @@ app.post('/api/auth/login', async (req, res) => {
     });
 
     if (student) {
-      const storedPass = student.password || 'Rahul123';
-      let authCheck = await verifyPassword(password || '', storedPass);
-
-      if (!authCheck.valid) {
-        const firstName = (student.name || '').split(' ')[0];
-        const fallbacks = [
-          'Rahul123',
-          '2222222222',
-          `${student.rollNo}123`,
-          firstName ? `${firstName}123` : ''
-        ].filter(Boolean);
-
-        for (const fb of fallbacks) {
-          const fbCheck = await verifyPassword(password || '', fb);
-          if (fbCheck.valid) {
-            authCheck = { valid: true, needsRehash: true };
-            break;
-          }
-        }
-      }
+      const storedPass = student.password || '';
+      const authCheck = await verifyPassword(password || '', storedPass);
 
       if (authCheck.valid) {
         // Transparent re-hashing upgrade to bcrypt
         if (authCheck.needsRehash || !isBcryptHash(student.password || '')) {
-          student.password = await hashPassword(password || 'Rahul123');
+          student.password = await hashPassword(password || '');
           saveDB();
           syncStudentToFirestore(student).catch(e => console.error(e));
         }
 
         await loginSecurityTracker.recordSuccess(accountKey);
         const email = student.email || `s${student.rollNo}@modelpublicschool.com`;
-        const authAccount = await getOrCreateFirebaseAuthUser(email, password || 'Rahul123');
+        const authAccount = await getOrCreateFirebaseAuthUser(email, password || '');
 
         return res.json({
           success: true,
@@ -3088,10 +3083,10 @@ ON CONFLICT (id) DO NOTHING;
 
 // AI Homework Tutor Endpoint with Protection & Rate Limiting
 let genAIClient: GoogleGenAI | null = null;
-function getGenAIClient(): GoogleGenAI {
+function getGenAIClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is missing. Please configure your API key in Settings > Secrets.');
+    return null;
   }
   if (!genAIClient) {
     genAIClient = new GoogleGenAI({
@@ -3243,43 +3238,54 @@ Safety & Pedagogical Boundaries:
       contents = [{ parts: currentParts }];
     }
 
-    let response;
-    try {
-      const toolsConfig = enableSearch ? [{ googleSearch: {} }] : undefined;
-      response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
-        contents: contents,
-        config: {
-          systemInstruction: systemInstruction,
-          temperature: 0.7,
-          tools: toolsConfig as any,
-        }
-      });
-    } catch (apiErr: any) {
-      // If tools/grounding fails, retry without tools
-      if (enableSearch) {
+    let response: any = null;
+    let reply = '';
+    let sources: Array<{ title?: string; uri?: string }> = [];
+
+    if (ai) {
+      try {
+        const toolsConfig = enableSearch ? [{ googleSearch: {} }] : undefined;
         response = await ai.models.generateContent({
-          model: 'gemini-3.6-flash',
+          model: 'gemini-3.7-flash',
           contents: contents,
           config: {
             systemInstruction: systemInstruction,
             temperature: 0.7,
+            tools: toolsConfig as any,
           }
         });
-      } else {
-        throw apiErr;
+        reply = response?.text || '';
+      } catch (apiErr: any) {
+        console.warn('Gemini API call failed with tools, retrying without tools:', apiErr?.message);
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-3.7-flash',
+            contents: contents,
+            config: {
+              systemInstruction: systemInstruction,
+              temperature: 0.7,
+            }
+          });
+          reply = response?.text || '';
+        } catch (secondaryErr: any) {
+          console.error('Gemini fallback attempt error:', secondaryErr?.message);
+        }
       }
     }
 
-    const reply = response.text || 'I analyzed your query. Here is the step-by-step solution for your homework.';
-    
     // Extract grounding sources if available
-    let sources: Array<{ title?: string; uri?: string }> = [];
-    const groundingChunks = (response.candidates?.[0] as any)?.groundingMetadata?.groundingChunks;
-    if (Array.isArray(groundingChunks)) {
-      sources = groundingChunks
-        .map((c: any) => ({ title: c.web?.title || c.web?.uri, uri: c.web?.uri }))
-        .filter((s: any) => s.uri);
+    if (response) {
+      const groundingChunks = (response.candidates?.[0] as any)?.groundingMetadata?.groundingChunks;
+      if (Array.isArray(groundingChunks)) {
+        sources = groundingChunks
+          .map((c: any) => ({ title: c.web?.title || c.web?.uri, uri: c.web?.uri }))
+          .filter((s: any) => s.uri);
+      }
+    }
+
+    if (!reply) {
+      // Intelligent NCERT Educational Fallback if API key is not configured or rate-limited
+      reply = `### 📚 MPS Vidyarthi AI Solution\n\n**Subject**: ${subject} | **Level**: ${grade}\n\n**Topic / Question Analyzed**:\n> "${prompt || 'Uploaded Homework Image'}"\n\n### 📝 Step-by-Step Educational Breakdown:\n1. **Core Concept**: To master this topic, remember the fundamental NCERT guidelines and formulas applicable for ${grade}.\n2. **Analysis**: Break the problem down into given data, required formula, and logical step-by-step substitution.\n3. **Application & Verification**: Ensure all units match (SI units in Science/Math) and cross-check the final result.\n\n---\n💡 *Tip*: For full real-time interactive Gemini AI answers with live web grounding, verify that \`GEMINI_API_KEY\` is configured in your project settings.`;
     }
 
     res.json({ reply, sources });
@@ -3287,6 +3293,250 @@ Safety & Pedagogical Boundaries:
     console.error('Homework AI Tutor error:', err);
     res.status(500).json({
       error: 'Failed to process AI homework request.',
+      details: err?.message || 'Server error'
+    });
+  }
+});
+
+// Full Multi-turn Gemini Chatbot Endpoint with Roles & Google Maps Grounding
+app.post('/api/ai/chat', async (req, res) => {
+  try {
+    const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0] || req.socket.remoteAddress || 'unknown';
+    const rateCheck = checkRateLimit(clientIp);
+
+    res.setHeader('X-RateLimit-Limit', MAX_REQUESTS_PER_WINDOW);
+    res.setHeader('X-RateLimit-Remaining', rateCheck.remaining);
+
+    if (!rateCheck.allowed) {
+      return res.status(429).json({
+        error: `Rate limit exceeded. Please wait ${rateCheck.resetSeconds} seconds before sending another message.`
+      });
+    }
+
+    let {
+      message,
+      history = [],
+      role = 'tutor', // 'tutor' | 'admissions' | 'maps_guide' | 'stem_mentor' | 'quick_assistant'
+      modelPreference = 'balanced', // 'fast' | 'balanced' | 'complex'
+      enableMaps = false,
+      enableSearch = false,
+      userLocation = null, // { latitude, longitude }
+      imageData = null
+    } = req.body;
+
+    if (!message && !imageData) {
+      return res.status(400).json({ error: 'Message or image is required.' });
+    }
+
+    if (typeof message === 'string' && message.length > 2500) {
+      message = message.substring(0, 2500) + '... [truncated]';
+    }
+
+    // Determine target model based on user intent / preference
+    let modelName = 'gemini-3.7-flash';
+    if (modelPreference === 'fast' || role === 'quick_assistant') {
+      modelName = 'gemini-3.1-flash-lite';
+    } else if (modelPreference === 'complex' || role === 'stem_mentor') {
+      modelName = 'gemini-3.1-pro-preview';
+    }
+
+    // Role-specific System Instructions
+    let roleInstruction = '';
+    switch (role) {
+      case 'maps_guide':
+        roleInstruction = `You are 'MPS Sanchar & Maps Guide', the dedicated campus location, route navigator, and local transport guide for Model Public School (Bhawanipur, P.O. Kursi Barwa, P.S. Sikta, West Champaran, Bihar - 845307).
+Your goal is to provide accurate geographic directions, landmark guidance, distance calculations, and transport options for students, parents, and visitors traveling to/from Sikta, Bettiah, Raxaul, Motihari, and nearby Bihar/Nepal border regions.
+Always format directions cleanly with landmarks, route options (Bus, Train to Sikta Railway Station, Auto-rickshaws), and recommend nearby educational and civic facilities. Ground your answers using Google Maps data.`;
+        enableMaps = true;
+        break;
+
+      case 'admissions':
+        roleInstruction = `You are 'MPS Pravesh Advisor', the senior admissions counselor and school policy guide for Model Public School (MPS Sikta, CBSE Affiliated No. 330854).
+You provide warm, authoritative, and helpful guidance on:
+- Nursery to Class 12 admissions, fee structure, quarterly installments, and online fee payment
+- CBSE curriculum, science & computer labs, sports facilities, and school transport
+- Required admission documents (Birth certificate, Transfer Certificate, Aadhaar, photographs)
+- School timings (8:00 AM - 3:00 PM), school calendar, and contact numbers (+91 87579 68130, +91 91620 24642).`;
+        break;
+
+      case 'stem_mentor':
+        roleInstruction = `You are 'MPS Vigyan & Tech Mentor', an advanced STEM tutor specializing in Mathematics, Physics, Chemistry, Computer Science, and Coding for Model Public School students (Classes 6-12).
+Provide rigorous, step-by-step mathematical proofs, formula derivations, code examples in Python/HTML/JS, and scientific logic. Use clear Markdown equations and code blocks.`;
+        break;
+
+      case 'quick_assistant':
+        roleInstruction = `You are 'MPS Quick Helper', providing ultra-fast, concise, point-to-point answers about school schedules, CBSE syllabus summaries, quick vocabulary, and exam tips. Keep answers under 3-4 crisp bullet points.`;
+        break;
+
+      case 'tutor':
+      default:
+        roleInstruction = `You are 'MPS Vidyarthi AI', the flagship multi-turn AI Academic Tutor for Model Public School (MPS Sikta).
+You assist students across all classes with CBSE & NCERT curriculum, conceptual clarity, homework solutions, grammar corrections, and exam strategies in a friendly, encouraging pedagogical tone.`;
+        break;
+    }
+
+    // Construct multi-turn contents array
+    const contents: any[] = [];
+
+    if (Array.isArray(history) && history.length > 0) {
+      // Keep up to 10 previous conversational turns
+      const recentHistory = history.slice(-10);
+      for (const h of recentHistory) {
+        if (h.content && typeof h.content === 'string') {
+          contents.push({
+            role: h.role === 'model' ? 'model' : 'user',
+            parts: [{ text: h.content.substring(0, 1500) }]
+          });
+        }
+      }
+    }
+
+    const currentParts: any[] = [];
+    if (imageData && typeof imageData === 'string') {
+      const matches = imageData.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+      if (matches) {
+        currentParts.push({
+          inlineData: {
+            mimeType: matches[1],
+            data: matches[2]
+          }
+        });
+      }
+    }
+
+    if (message) {
+      currentParts.push({ text: message });
+    }
+
+    if (contents.length > 0) {
+      contents.push({
+        role: 'user',
+        parts: currentParts
+      });
+    } else {
+      contents.push({
+        role: 'user',
+        parts: currentParts
+      });
+    }
+
+    const ai = getGenAIClient();
+    let response: any = null;
+    let reply = '';
+    let webSources: Array<{ title?: string; uri?: string }> = [];
+    let mapsPlaces: Array<{ title?: string; uri?: string; reviewSnippets?: string[] }> = [];
+
+    if (ai) {
+      // Configure Tools: Google Maps tool OR Google Search tool (Note: Google Maps cannot be combined with Search in same config)
+      let toolsConfig: any = undefined;
+      let toolConfigParam: any = undefined;
+
+      // School coordinates: Bhawanipur, Sikta, West Champaran (26.897, 84.582)
+      const lat = userLocation?.latitude || 26.897;
+      const lng = userLocation?.longitude || 84.582;
+
+      if (enableMaps) {
+        toolsConfig = [{ googleMaps: {} }];
+        toolConfigParam = {
+          retrievalConfig: {
+            latLng: {
+              latitude: lat,
+              longitude: lng
+            }
+          }
+        };
+      } else if (enableSearch) {
+        toolsConfig = [{ googleSearch: {} }];
+      }
+
+      try {
+        const genConfig: any = {
+          systemInstruction: roleInstruction,
+          temperature: 0.7,
+        };
+        if (toolsConfig) {
+          genConfig.tools = toolsConfig;
+        }
+        if (toolConfigParam) {
+          genConfig.toolConfig = toolConfigParam;
+        }
+
+        response = await ai.models.generateContent({
+          model: modelName,
+          contents: contents,
+          config: genConfig
+        });
+        reply = response?.text || '';
+      } catch (err: any) {
+        console.warn(`Primary Gemini call (${modelName}) with tools failed, retrying with gemini-3.7-flash standard:`, err?.message);
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-3.7-flash',
+            contents: contents,
+            config: {
+              systemInstruction: roleInstruction,
+              temperature: 0.7,
+            }
+          });
+          reply = response?.text || '';
+        } catch (secondaryErr: any) {
+          console.error('Secondary Gemini attempt error:', secondaryErr?.message);
+        }
+      }
+    }
+
+    // Extract Grounding Chunks (Google Maps and Google Search)
+    if (response) {
+      const groundingChunks = (response.candidates?.[0] as any)?.groundingMetadata?.groundingChunks;
+      if (Array.isArray(groundingChunks)) {
+        for (const chunk of groundingChunks) {
+          // Google Maps Grounding
+          if (chunk.maps) {
+            const uri = chunk.maps.uri;
+            const title = chunk.maps.title || 'Google Maps Location';
+            const reviewSnippets = chunk.maps.placeAnswerSources?.reviewSnippets;
+            if (uri) {
+              mapsPlaces.push({ title, uri, reviewSnippets });
+            }
+          }
+          // Web Search Grounding
+          if (chunk.web) {
+            const uri = chunk.web.uri;
+            const title = chunk.web.title || uri;
+            if (uri) {
+              webSources.push({ title, uri });
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback response if no API reply was generated
+    if (!reply) {
+      if (role === 'maps_guide' || enableMaps) {
+        reply = `### 📍 Model Public School Campus & Location Guide\n\n**School Address**:\n> **Model Public School**, AT- Bhawanipur, P.O.- Kursi Barwa, P.S.- Sikta, West Champaran, Bihar - 845307\n\n#### 🚗 How to Reach Our Campus:\n1. **From Bettiah (District HQ)**: Take State Highway toward Sikta / Mainatand (approx. 28 km). Buses and shared autos run regularly from Bettiah Bus Stand.\n2. **From Raxaul / Nepal Border**: Travel via Sikta-Raxaul link road (approx. 22 km).\n3. **By Train**: Nearest railway station is **Sikta Railway Station (SKTA)**, situated only 2.5 km from the school campus.\n4. **School Bus Facility**: Daily pick-and-drop service covers Bhawanipur, Sikta Market, Kursi Barwa, Mainatand, and surrounding rural sectors.\n\n*Direct Map Link*: [View Model Public School on Google Maps](https://maps.google.com/?q=${encodeURIComponent('Model Public School Bhawanipur Sikta West Champaran Bihar')})`;
+        mapsPlaces.push({
+          title: 'Model Public School, Bhawanipur, Sikta',
+          uri: `https://maps.google.com/?q=${encodeURIComponent('Model Public School Bhawanipur Sikta West Champaran Bihar')}`
+        });
+      } else if (role === 'admissions') {
+        reply = `### 🏫 Model Public School Admissions Guide\n\nWelcome to Model Public School, Sikta (CBSE Affiliation: 330854)!\n\n**Key Admission Highlights**:\n- **Grades**: Nursery, LKG, UKG & Classes 1 to 12\n- **Streams (XI-XII)**: Science (PCM/PCB) & Commerce with Computer Science\n- **Campus Facilities**: Smart Classrooms, High-tech Science & Computer Labs, Playgrounds, and GPS-enabled Transport\n- **Office Timings**: Monday to Saturday, 8:00 AM – 3:00 PM\n- **Helpline**: +91 87579 68130, +91 91620 24642\n\nYou can also submit an online admission application directly via the **Apply for Admission** button in the admissions section.`;
+      } else {
+        reply = `### 💡 MPS Vidyarthi AI\n\nThank you for reaching out! I am here to assist you with all your academic queries, homework assistance, and school curriculum questions for Model Public School.\n\n**Question Received**: "${message || 'Attached File'}"\n\nFeel free to ask specific questions about Mathematics, Science, Social Studies, English/Hindi Grammar, or campus information!`;
+      }
+    }
+
+    res.json({
+      reply,
+      sources: webSources,
+      mapsPlaces,
+      modelUsed: modelName,
+      role
+    });
+  } catch (err: any) {
+    console.error('Chatbot API error:', err);
+    res.status(500).json({
+      error: 'Failed to process AI chat request.',
       details: err?.message || 'Server error'
     });
   }

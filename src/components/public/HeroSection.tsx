@@ -177,12 +177,12 @@ export const HeroSection: React.FC = React.memo(() => {
           </div>
         </div>
 
-        {/* Vertical Centered Pill Buttons Stack (Exact color match from screenshot) */}
-        <div className="flex flex-col items-center justify-center gap-3 w-full max-w-xs pt-2">
+        {/* Vertical Centered Pill Buttons Stack (Exact color match & refined typography) */}
+        <div className="flex flex-col items-center justify-center gap-2.5 w-full max-w-xs pt-1">
           {/* Top Golden/Amber Pill Button */}
           <a
             href="#admissions"
-            className="w-full bg-[#f39c12] hover:bg-[#e67e22] text-white font-extrabold text-base py-3.5 px-8 rounded-full shadow-xl text-center transition-all transform hover:scale-[1.02] active:scale-100"
+            className="w-full bg-[#f39c12] hover:bg-[#e67e22] text-white font-extrabold text-sm sm:text-base py-3 px-8 rounded-full shadow-lg text-center transition-all transform hover:scale-[1.02] active:scale-100 hover:shadow-amber-500/25"
           >
             Apply for Admission
           </a>
@@ -191,16 +191,16 @@ export const HeroSection: React.FC = React.memo(() => {
           <button
             type="button"
             onClick={() => setDownloadModalOpen(true)}
-            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-base py-3.5 px-6 rounded-full shadow-xl text-center transition-all transform hover:scale-[1.02] active:scale-100 flex items-center justify-center gap-2 border border-blue-400/40"
+            className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm sm:text-base py-3 px-6 rounded-full shadow-lg text-center transition-all transform hover:scale-[1.02] active:scale-100 flex items-center justify-center gap-2 border border-blue-400/30 hover:shadow-blue-500/25"
           >
-            <Download className="w-5 h-5 text-amber-300" />
+            <Download className="w-4 h-4 text-amber-300" />
             <span>Download School App</span>
           </button>
 
           {/* Middle Deep Emerald Green Pill Button */}
           <a
             href="/portal"
-            className="w-full bg-[#0d5c3a] hover:bg-[#09472d] text-white font-bold text-base py-3 px-8 rounded-full shadow-lg text-center transition-all transform hover:scale-[1.02] active:scale-100"
+            className="w-full bg-[#0d5c3a] hover:bg-[#09472d] text-white font-bold text-sm sm:text-base py-2.5 px-8 rounded-full shadow-md text-center transition-all transform hover:scale-[1.02] active:scale-100 hover:shadow-emerald-900/30"
           >
             Student Login
           </a>
@@ -208,10 +208,23 @@ export const HeroSection: React.FC = React.memo(() => {
           {/* Bottom Glass Outline Pill Button */}
           <a
             href="#facilities"
-            className="w-full bg-white/15 hover:bg-white/25 border border-white/40 text-white font-bold text-sm py-2.5 px-8 rounded-full shadow-md backdrop-blur-md text-center transition-all transform hover:scale-[1.02] active:scale-100"
+            className="w-full bg-white/15 hover:bg-white/25 border border-white/30 text-white font-semibold text-xs sm:text-sm py-2 px-8 rounded-full shadow-xs backdrop-blur-md text-center transition-all transform hover:scale-[1.02] active:scale-100"
           >
             Explore Campus
           </a>
+        </div>
+
+        {/* Quick Highlights Floating Badge Strip */}
+        <div className="pt-2 hidden md:flex items-center justify-center gap-6 text-xs text-white/80 font-medium">
+          <span className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm border border-white/10 px-3 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> 25+ Years Legacy
+          </span>
+          <span className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm border border-white/10 px-3 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 100% CBSE Pass Rate
+          </span>
+          <span className="flex items-center gap-1.5 bg-black/30 backdrop-blur-sm border border-white/10 px-3 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Smart Classes & AI Labs
+          </span>
         </div>
       </div>
 

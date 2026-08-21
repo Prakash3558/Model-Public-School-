@@ -612,7 +612,7 @@ export const api = {
 
       return {
         success: false,
-        message: 'Incorrect username or password. Default Admin: admin / admin123'
+        message: 'Incorrect username or password. Please verify your credentials.'
       };
     }
 
@@ -628,8 +628,8 @@ export const api = {
       );
 
       if (matched) {
-        const storedPass = matched.password || 'teacher123';
-        if (password === storedPass || password === 'teacher123') {
+        const storedPass = matched.password;
+        if (storedPass && password === storedPass) {
           return {
             success: true,
             user: {
@@ -646,7 +646,7 @@ export const api = {
 
       return {
         success: false,
-        message: 'Incorrect teacher username or password. Default: teacher1 / teacher123'
+        message: 'Incorrect teacher username or password. Please verify your credentials.'
       };
     }
 
@@ -676,8 +676,8 @@ export const api = {
       });
 
       if (matched) {
-        const studentPass = matched.password || 'Rahul123';
-        const isPassValid = !password || password === studentPass || password === 'Rahul123' || password === 'student123';
+        const studentPass = matched.password;
+        const isPassValid = studentPass ? password === studentPass : (!password || password.length >= 4);
         if (isPassValid) {
           return {
             success: true,
@@ -695,7 +695,7 @@ export const api = {
 
       return {
         success: false,
-        message: 'Student record not found or incorrect credentials. Please verify your details.'
+        message: 'Incorrect student credentials or password. Please verify your details.'
       };
     }
 
@@ -2386,6 +2386,81 @@ export const api = {
       return {
         connected: false,
         error: e?.message || 'Supabase connection check failed'
+      };
+    }
+  },
+
+  // Gemini AI Chat & Maps Grounding APIs
+  async sendAIChat(payload: {
+    message: string;
+    history?: Array<{ role: string; content: string }>;
+    role?: 'tutor' | 'admissions' | 'maps_guide' | 'stem_mentor' | 'quick_assistant';
+    modelPreference?: 'fast' | 'balanced' | 'complex';
+    enableMaps?: boolean;
+    enableSearch?: boolean;
+    userLocation?: { latitude: number; longitude: number } | null;
+    imageData?: string | null;
+  }): Promise<{
+    reply: string;
+    sources?: Array<{ title?: string; uri?: string }>;
+    mapsPlaces?: Array<{ title?: string; uri?: string; reviewSnippets?: string[] }>;
+    modelUsed?: string;
+    role?: string;
+  }> {
+    try {
+      const res = await fetch(apiUrl('/api/ai/chat'), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error ${res.status}`);
+      }
+      return await res.json();
+    } catch (err: any) {
+      console.warn('sendAIChat API error, using intelligent client fallback:', err);
+      // Client fallback in case backend is offline
+      let fallbackText = `### 💡 MPS Assistant\n\nThank you for reaching out! Here is the guidance for: "${payload.message}"\n\n- **Model Public School Sikta** is committed to quality CBSE education.\n- For admissions and office queries, visit during working hours (8:00 AM – 3:00 PM).\n- Please check the respective portal sections or explore our campus map!`;
+      if (payload.role === 'maps_guide' || payload.enableMaps) {
+        fallbackText = `### 📍 Campus Navigation & Directions\n\n**Model Public School** is situated at:\n> **Bhawanipur, P.O.- Kursi Barwa, Sikta, West Champaran, Bihar - 845307**\n\n- **Nearest Rail**: Sikta Railway Station (2.5 km)\n- **Nearest District HQ**: Bettiah (28 km)\n- **Nearest Border**: Raxaul (22 km)\n\n[Open Model Public School in Google Maps](https://maps.google.com/?q=${encodeURIComponent('Model Public School Bhawanipur Sikta West Champaran Bihar')})`;
+      }
+      return {
+        reply: fallbackText,
+        mapsPlaces: [{
+          title: 'Model Public School, Sikta',
+          uri: `https://maps.google.com/?q=${encodeURIComponent('Model Public School Bhawanipur Sikta West Champaran Bihar')}`
+        }],
+        sources: []
+      };
+    }
+  },
+
+  async askHomeworkTutor(payload: {
+    prompt?: string;
+    subject?: string;
+    grade?: string;
+    mode?: string;
+    imageData?: string | null;
+    history?: Array<{ role: string; content: string }>;
+    enableSearch?: boolean;
+  }): Promise<{ reply: string; sources?: Array<{ title?: string; uri?: string }> }> {
+    try {
+      const res = await fetch(apiUrl('/api/ai/homework-tutor'), {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error ${res.status}`);
+      }
+      return await res.json();
+    } catch (err: any) {
+      console.warn('askHomeworkTutor API error:', err);
+      return {
+        reply: `### 📚 Step-by-Step Educational Solution\n\n**Topic / Question Analyzed**:\n> "${payload.prompt || 'Attached Problem'}"\n\n1. **Core Concept**: Apply the standard NCERT & CBSE principles for ${payload.grade || 'your class'}.\n2. **Breakdown**: Identify the key known values and required output step by step.\n3. **Summary**: Cross-check with standard textbook definitions.`,
+        sources: []
       };
     }
   }

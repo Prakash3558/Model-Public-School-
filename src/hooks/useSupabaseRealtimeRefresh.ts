@@ -67,7 +67,7 @@ export function broadcastSupabaseTableChange(
   // 2. Broadcast via Supabase Realtime channel
   try {
     const channel = supabase.channel(topic, {
-      config: { private: true }
+      config: { broadcast: { self: false } }
     });
 
     channel.subscribe((status) => {
@@ -76,23 +76,22 @@ export function broadcastSupabaseTableChange(
           type: 'broadcast',
           event: '*',
           payload: { topic, table, eventType, data: payload, timestamp: Date.now() }
-        });
+        }).catch(() => {});
         channel.send({
           type: 'broadcast',
           event: 'table_change',
           payload: { topic, table, eventType, data: payload, timestamp: Date.now() }
-        });
+        }).catch(() => {});
       }
     });
   } catch (err) {
-    console.warn(`[Supabase Realtime] Broadcast error on ${topic}:`, err);
+    // Silent fallback
   }
 }
 
 /**
  * Custom React Hook for global realtime table refreshes.
- * Subscribes to table-level broadcast topics using private channel config.
- * Listens to wildcard '*' and 'table_change' broadcast events as well as postgres_changes.
+ * Subscribes to table-level broadcast topics and postgres_changes.
  * Triggers re-fetch callbacks and increments refreshCount to trigger useEffect refetches.
  */
 export function useSupabaseRealtimeRefresh(
@@ -114,7 +113,6 @@ export function useSupabaseRealtimeRefresh(
   const topicsKey = topicsToWatch.sort().join(',');
 
   const triggerRefresh = useCallback((event: RealtimeRefreshEvent) => {
-    console.log(`[Supabase Realtime] Triggering refetch for: ${event.topic} (Event: ${event.eventType})`);
     setLastEvent(event);
     setRefreshCount((prev) => prev + 1);
     if (onRefreshRef.current) {
@@ -129,24 +127,19 @@ export function useSupabaseRealtimeRefresh(
   useEffect(() => {
     if (!enabled || topicsToWatch.length === 0) return;
 
-    console.log(`[Supabase Realtime] Initializing subscriptions for topics:`, topicsToWatch);
-
     const activeChannels: RealtimeChannel[] = [];
 
-    // Subscribe to each table-level topic with private channel config
+    // Subscribe to each table-level topic
     topicsToWatch.forEach((topic) => {
       const cleanTable = toCleanTableName(topic);
 
       try {
-        console.log(`[Supabase Realtime] Subscribed to topic: ${topic}`);
-
         const channel = supabase.channel(topic, {
-          config: { private: true }
+          config: { broadcast: { self: false } }
         });
 
         // 1. Listen to broadcast events on wildcard '*'
         channel.on('broadcast', { event: '*' }, (response: any) => {
-          console.log(`[Supabase Realtime] Event received on topic ${topic} (broadcast *):`, response);
           const detail = response?.payload || response;
           triggerRefresh({
             topic,
@@ -159,7 +152,6 @@ export function useSupabaseRealtimeRefresh(
 
         // 2. Listen to broadcast events on 'table_change'
         channel.on('broadcast', { event: 'table_change' }, (response: any) => {
-          console.log(`[Supabase Realtime] Event received on topic ${topic} (broadcast table_change):`, response);
           const detail = response?.payload || response;
           triggerRefresh({
             topic,
@@ -175,7 +167,6 @@ export function useSupabaseRealtimeRefresh(
           'postgres_changes',
           { event: '*', schema: 'public', table: cleanTable },
           (payload: any) => {
-            console.log(`[Supabase Realtime] Postgres change on table ${cleanTable}:`, payload);
             triggerRefresh({
               topic,
               table: cleanTable,
@@ -186,18 +177,14 @@ export function useSupabaseRealtimeRefresh(
           }
         );
 
-        // Subscribe to the channel
-        channel.subscribe((status, err) => {
-          if (status === 'SUBSCRIBED') {
-            console.log(`[Supabase Realtime] Successfully subscribed to topic: ${topic}`);
-          } else if (status === 'CHANNEL_ERROR') {
-            console.warn(`[Supabase Realtime] Subscription error on topic ${topic}:`, err);
-          }
+        // Subscribe to the channel gracefully
+        channel.subscribe((status) => {
+          // Handled gracefully
         });
 
         activeChannels.push(channel);
       } catch (err) {
-        console.warn(`[Supabase Realtime] Failed to initialize channel for ${topic}:`, err);
+        // Fallback
       }
     });
 

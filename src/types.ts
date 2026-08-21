@@ -82,7 +82,7 @@ export interface AttendanceRecord {
   class: string;
   section: string;
   date: string; // YYYY-MM-DD
-  status: 'Present' | 'Absent' | 'Late' | 'Leave' | 'Holiday';
+  status: 'Present' | 'Absent' | 'Late' | 'Leave' | 'Holiday' | 'Not Mentioned';
   remarks?: string;
   isPublished?: boolean;
   teacherName?: string;

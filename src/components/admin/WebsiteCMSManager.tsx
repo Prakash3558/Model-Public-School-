@@ -317,7 +317,7 @@ export const WebsiteCMSManager: React.FC = () => {
             subTab === 'about' ? 'bg-amber-500 text-slate-950 shadow' : 'bg-stone-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
           }`}
         >
-          <Camera className="w-4 h-4" /> About & Principal Desk
+          <Camera className="w-4 h-4" /> About & Director's Desk
         </button>
 
         <button
@@ -1547,26 +1547,26 @@ export const WebsiteCMSManager: React.FC = () => {
         </div>
       )}
 
-      {/* --- SUBTAB 3: ABOUT & PRINCIPAL DESK --- */}
+      {/* --- SUBTAB 3: ABOUT & DIRECTOR'S DESK --- */}
       {subTab === 'about' && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-6">
           <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 className="text-base font-bold font-heading text-slate-900 dark:text-white flex items-center gap-2">
               <Camera className="w-5 h-5 text-amber-500" />
-              Principal's Desk & About Us Content
+              Director's Desk & About Us Content
             </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            {/* Principal Photo Card */}
+            {/* Director Photo Card */}
             <div className="md:col-span-4 bg-stone-50 dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 text-center space-y-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
-                Principal Portrait Photo
+                Director Portrait Photo
               </span>
               <div className="w-36 h-44 mx-auto rounded-2xl bg-slate-900 border-2 border-amber-400 shadow-md overflow-hidden">
                 <img
                   src={settings.principal_photo}
-                  alt="Principal"
+                  alt="Director"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -1576,11 +1576,11 @@ export const WebsiteCMSManager: React.FC = () => {
                   type="button"
                   onClick={() => handleFileUpload((url) => {
                     updateSettings({ principal_photo: url });
-                    showNotification('Principal Photo Uploaded!');
+                    showNotification('Director Photo Uploaded!');
                   })}
                   className="w-full py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow flex items-center justify-center gap-1.5"
                 >
-                  <Upload className="w-4 h-4" /> Change Principal Photo
+                  <Upload className="w-4 h-4" /> Change Director Photo
                 </button>
 
                 <input
@@ -1593,10 +1593,10 @@ export const WebsiteCMSManager: React.FC = () => {
               </div>
             </div>
 
-            {/* Principal Message & Text */}
+            {/* Director Message & Text */}
             <div className="md:col-span-8 space-y-4 text-xs font-medium">
               <div>
-                <label className="block mb-1 font-bold text-slate-700 dark:text-slate-300">Principal Name</label>
+                <label className="block mb-1 font-bold text-slate-700 dark:text-slate-300">Director Name</label>
                 <input
                   type="text"
                   value={settings.principal_name}
@@ -1606,7 +1606,7 @@ export const WebsiteCMSManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block mb-1 font-bold text-slate-700 dark:text-slate-300">Principal's Welcome Speech / Message</label>
+                <label className="block mb-1 font-bold text-slate-700 dark:text-slate-300">Director's Welcome Speech / Message</label>
                 <textarea
                   rows={4}
                   value={settings.principal_message}

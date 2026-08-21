@@ -1607,7 +1607,7 @@ export const AdminControlCenter: React.FC = () => {
                       required
                       value={securityForm.currentPassword}
                       onChange={e => setSecurityForm({ ...securityForm, currentPassword: e.target.value })}
-                      placeholder="admin123"
+                      placeholder="Enter current master password"
                       className="w-full p-3 rounded-xl border border-slate-700 bg-slate-800 text-white"
                     />
                   </div>
@@ -1737,7 +1737,7 @@ export const AdminControlCenter: React.FC = () => {
                     type={showTeacherPassword ? 'text' : 'password'}
                     value={newTeacher.password}
                     onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })}
-                    placeholder="e.g. teacher123 or secretPass"
+                    placeholder="Enter teacher password (e.g. Teacher@2026)"
                     className="w-full p-2.5 pr-10 rounded-xl border border-slate-700 bg-slate-800 text-white font-mono"
                   />
                   <button
@@ -1748,7 +1748,7 @@ export const AdminControlCenter: React.FC = () => {
                     {showTeacherPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Leave blank for default: teacher123</p>
+                <p className="text-[10px] text-slate-400 mt-1">Set a unique secure password for teacher workspace login</p>
               </div>
 
               <div>

@@ -37,37 +37,44 @@ export const Header: React.FC = React.memo(() => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all duration-300">
-      {/* Top Info Bar - Light Aesthetic */}
-      <div className="bg-slate-100 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 text-[11px] py-1.5 px-4 hidden sm:block border-b border-slate-200 dark:border-slate-800">
+    <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all duration-300">
+      {/* Top Info Bar - Figma Refined Aesthetic */}
+      <div className="bg-slate-50/90 dark:bg-slate-950/80 text-slate-600 dark:text-slate-300 text-[11px] py-1.5 px-4 hidden sm:block border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors">
+          <div className="flex items-center gap-5">
+            <a
+              href={`tel:${(settings?.phones || '+918757968130').split(',')[0].trim()}`}
+              className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
               <Phone className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>{settings?.phones || '+91 87579 68130, +91 91620 24642'}</span>
-            </span>
-            <span className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300 hover:text-blue-600 transition-colors">
+            </a>
+            <a
+              href={`mailto:${settings?.email || 'modelpublicschool@gmail.com'}`}
+              className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
               <Mail className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
               <span>{settings?.email || 'modelpublicschool@gmail.com'}</span>
-            </span>
+            </a>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-700 dark:text-slate-300 font-medium">
-            <span className="bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-              CBSE Affiliation No: {settings?.cbse_affiliation || '330854'}
+          <div className="flex items-center gap-4">
+            <span className="inline-flex items-center gap-1.5 bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/20 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              CBSE Affiliation: {settings?.cbse_affiliation || '330854'}
             </span>
-            <span className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-              📍 Bhawanipur, Sikta, West Champaran (Bihar)
+            <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1 text-[11px]">
+              📍 Bhawanipur, Sikta, West Champaran
             </span>
           </div>
         </div>
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 py-2.5 sm:py-3 flex items-center justify-between">
         {/* Brand Logo & Title */}
         <div className="flex items-center gap-3 group">
-          <div className="h-11 sm:h-12 max-w-[180px] rounded-xl bg-white text-slate-900 flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-800 flex-shrink-0 overflow-hidden p-1">
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-white dark:bg-slate-800 text-slate-900 flex items-center justify-center shadow-xs border border-slate-200/80 dark:border-slate-700/80 flex-shrink-0 overflow-hidden p-1 transition-transform group-hover:scale-105">
             {settings?.logo_url ? (
               <EditableImage
                 src={settings.logo_url}
@@ -76,16 +83,16 @@ export const Header: React.FC = React.memo(() => {
                 onSaveImage={(url) => updateSettings({ logo_url: url })}
               />
             ) : (
-              <School className="w-5 h-5 text-slate-800" />
+              <School className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             )}
           </div>
           <div>
             <a href="/" className="hover:opacity-90 transition-opacity">
-              <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white leading-tight font-heading tracking-tight">
+              <h1 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight font-heading tracking-tight">
                 <EditableText blockKey="header.schoolName" defaultText={settings?.school_name || 'Model Public School'} />
               </h1>
             </a>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide flex items-center gap-1">
+            <p className="text-[10.5px] text-slate-500 dark:text-slate-400 font-medium tracking-wide flex items-center gap-1">
               <Shield className="w-3 h-3 text-blue-600 dark:text-blue-400" />
               <EditableText blockKey="header.locationBadge" defaultText="MPS Sikta, West Champaran" />
             </p>
@@ -93,15 +100,15 @@ export const Header: React.FC = React.memo(() => {
         </div>
 
         {/* Navigation Links Desktop */}
-        <nav className="hidden lg:flex items-center gap-1 font-semibold text-xs text-slate-700 dark:text-slate-200">
-          <a href="#about" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">About Us</a>
-          <a href="#faculty" onMouseEnter={api.prefetchTeachers} className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Faculty</a>
-          <a href="#facilities" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Facilities</a>
-          <a href="#gallery" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Gallery</a>
-          <a href="#fees" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Fee Structure</a>
-          <a href="#faq" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">FAQ</a>
-          <a href="#admissions" onMouseEnter={api.prefetchAdmissions} className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Admissions</a>
-          <a href="#contact" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-all">Contact</a>
+        <nav className="hidden lg:flex items-center gap-0.5 font-medium text-xs text-slate-600 dark:text-slate-300">
+          <a href="#about" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">About</a>
+          <a href="#faculty" onMouseEnter={api.prefetchTeachers} className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Faculty</a>
+          <a href="#facilities" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Facilities</a>
+          <a href="#gallery" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Gallery</a>
+          <a href="#fees" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Fees</a>
+          <a href="#faq" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">FAQ</a>
+          <a href="#admissions" onMouseEnter={api.prefetchAdmissions} className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-semibold text-blue-600 dark:text-blue-400">Admissions</a>
+          <a href="#contact" className="px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contact</a>
         </nav>
 
         {/* Portal Login Action Buttons & Theme Switcher */}
@@ -109,20 +116,21 @@ export const Header: React.FC = React.memo(() => {
           {/* Dark mode toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700"
-            title="Toggle Dark Mode"
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200/80 dark:border-slate-700/80 active:scale-95"
+            title="Toggle Dark / Light Mode"
+            aria-label="Toggle theme"
           >
-            {isDarkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-700" />}
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-400 transition-transform rotate-0 hover:rotate-45" /> : <Moon className="w-4 h-4 text-slate-700 transition-transform -rotate-12 hover:rotate-0" />}
           </button>
 
           <button
             type="button"
             onClick={() => setDownloadModalOpen(true)}
-            className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-extrabold text-xs px-3 py-2 rounded-xl shadow-xs transition-all border border-amber-400"
+            className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl shadow-xs transition-all border border-amber-400/80"
             title="Download Model Public School App for Android & iOS"
           >
-            <Download className="w-4 h-4 text-slate-950" />
-            <span>Download App</span>
+            <Download className="w-3.5 h-3.5 text-slate-950" />
+            <span>App</span>
           </button>
 
           {(user || teacher || student) ? (
@@ -148,19 +156,19 @@ export const Header: React.FC = React.memo(() => {
                 href="/portal"
                 onMouseEnter={() => { api.prefetchStudents(); api.prefetchNotices(); }}
                 onFocus={() => { api.prefetchStudents(); api.prefetchNotices(); }}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl shadow-xs transition-all"
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs transition-all"
               >
-                <GraduationCap className="w-4 h-4" />
-                <span>Student Portal</span>
+                <GraduationCap className="w-3.5 h-3.5" />
+                <span>Portal</span>
               </a>
 
               <a
                 href="/teacher"
                 onMouseEnter={() => { api.prefetchTeachers(); api.prefetchStudents(); }}
                 onFocus={() => { api.prefetchTeachers(); api.prefetchStudents(); }}
-                className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all"
+                className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
               >
-                <UserCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <UserCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                 <span>Teacher</span>
               </a>
 
@@ -168,9 +176,9 @@ export const Header: React.FC = React.memo(() => {
                 href="/admin"
                 onMouseEnter={() => { api.prefetchTeachers(); api.prefetchAdmissions(); api.prefetchNotices(); }}
                 onFocus={() => { api.prefetchTeachers(); api.prefetchAdmissions(); api.prefetchNotices(); }}
-                className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xs transition-all"
+                className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
               >
-                <ShieldAlert className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                <ShieldAlert className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                 <span>Admin</span>
               </a>
             </>
@@ -178,112 +186,110 @@ export const Header: React.FC = React.memo(() => {
         </div>
 
         {/* Mobile Controls */}
-        <div className="flex sm:hidden items-center gap-2">
+        <div className="flex sm:hidden items-center gap-1.5">
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80"
+            aria-label="Toggle theme"
           >
-            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
           </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200"
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700/80"
+            aria-label="Open menu"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-6 py-4 space-y-3 text-sm font-medium animate-in slide-in-from-top-4">
-          <a
-            href="#about"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            About Us
-          </a>
-          <a
-            href="#faculty"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            Faculty Members
-          </a>
-          <a
-            href="#facilities"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            Facilities
-          </a>
-          <a
-            href="#gallery"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            Gallery
-          </a>
-          <a
-            href="#fees"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            Fee Structure
-          </a>
-          <a
-            href="#faq"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            FAQ & Questions
-          </a>
-          <a
-            href="#admissions"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            Admissions
-          </a>
-          <a
-            href="#contact"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-slate-800 dark:text-slate-200 hover:text-blue-600"
-          >
-            Contact Us
-          </a>
+        <div className="lg:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border-b border-slate-200 dark:border-slate-800 px-5 py-4 space-y-2.5 text-sm font-medium animate-in slide-in-from-top-3 duration-200">
+          <div className="grid grid-cols-2 gap-1.5 pb-2">
+            <a
+              href="#about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 hover:text-blue-600 text-xs font-semibold"
+            >
+              About Us
+            </a>
+            <a
+              href="#faculty"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 hover:text-blue-600 text-xs font-semibold"
+            >
+              Faculty
+            </a>
+            <a
+              href="#facilities"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 hover:text-blue-600 text-xs font-semibold"
+            >
+              Facilities
+            </a>
+            <a
+              href="#gallery"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 hover:text-blue-600 text-xs font-semibold"
+            >
+              Gallery
+            </a>
+            <a
+              href="#fees"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 hover:text-blue-600 text-xs font-semibold"
+            >
+              Fee Structure
+            </a>
+            <a
+              href="#faq"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-200 hover:text-blue-600 text-xs font-semibold"
+            >
+              FAQ
+            </a>
+          </div>
 
-          <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+            <a
+              href="#admissions"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-xl text-center shadow-xs text-xs"
+            >
+              Apply for Admission
+            </a>
+
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
                 setDownloadModalOpen(true);
               }}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-black py-2.5 rounded-xl text-center shadow-md border border-amber-400"
+              className="w-full flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-semibold py-2.5 rounded-xl text-center border border-slate-200 dark:border-slate-700 text-xs"
             >
-              <Download className="w-4 h-4 text-slate-950" /> Download School App
+              <Download className="w-3.5 h-3.5" /> Download School App
             </button>
 
             <a
               href="/portal"
-              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-extrabold py-2.5 rounded-xl text-center shadow-md"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-center shadow-xs text-xs"
             >
-              <GraduationCap className="w-4 h-4" /> Student & Parent Portal
+              <GraduationCap className="w-4 h-4" /> Student Portal
             </a>
             <div className="flex gap-2">
               <a
                 href="/teacher"
-                className="w-1/2 flex items-center justify-center gap-1.5 bg-slate-100 text-slate-800 font-bold py-2 rounded-xl text-xs border border-slate-200"
+                className="w-1/2 flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700"
               >
-                <UserCheck className="w-4 h-4 text-blue-600" /> Teacher
+                <UserCheck className="w-3.5 h-3.5 text-blue-600" /> Teacher
               </a>
               <a
                 href="/admin"
-                className="w-1/2 flex items-center justify-center gap-1.5 bg-slate-100 text-slate-800 font-bold py-2 rounded-xl text-xs border border-slate-200"
+                className="w-1/2 flex items-center justify-center gap-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium py-2 rounded-xl text-xs border border-slate-200 dark:border-slate-700"
               >
-                <ShieldAlert className="w-4 h-4 text-slate-600" /> Admin
+                <ShieldAlert className="w-3.5 h-3.5 text-slate-500" /> Admin
               </a>
             </div>
           </div>

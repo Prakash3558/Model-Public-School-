@@ -5,6 +5,7 @@ import {
   ChevronDown, GraduationCap, ShieldCheck, Minimize2, Maximize2, MessageSquare,
   FileText, Zap
 } from 'lucide-react';
+import { apiUrl } from '../../lib/api';
 
 interface Message {
   id: string;
@@ -135,7 +136,7 @@ Select your subject and grade below, or ask me directly!`,
           content: m.content
         }));
 
-      const res = await fetch('/api/ai/homework-tutor', {
+      const res = await fetch(apiUrl('/api/ai/homework-tutor'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -281,7 +282,7 @@ Select your subject and grade below, or ask me directly!`,
               <h2 className="font-bold text-base font-heading tracking-wide">MPS Vidyarthi AI</h2>
               <span className="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5 text-amber-300" />
-                Gemini 3.1
+                Gemini 3.7 Flash
               </span>
             </div>
             <p className="text-xs text-slate-300 font-medium">Your 24/7 CBSE Homework & Study Tutor</p>
@@ -564,7 +565,7 @@ Select your subject and grade below, or ask me directly!`,
                 <ShieldCheck className="w-3 h-3 text-emerald-500" />
                 MPS Official AI Study Assistant
               </span>
-              <span>Model: Gemini 3.1 Flash Lite</span>
+              <span>Model: Gemini 3.7 Flash</span>
             </div>
           </div>
         </>
