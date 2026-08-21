@@ -74,26 +74,26 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({ isOpen, onCl
                 alt="MPS Logo"
                 className="w-full h-full object-contain"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/logo.svg';
+                  (e.target as HTMLImageElement).src = '/logo.png';
                 }}
               />
             </div>
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-extrabold uppercase tracking-wider mb-1 border border-amber-500/30">
-                <Sparkles className="w-3 h-3" /> Official Student App
+                <Sparkles className="w-3 h-3" /> Official App
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-white font-heading">
-                {settings?.school_name || 'Model Public School'} App
+                MPS
               </h2>
               <p className="text-xs text-slate-300">
-                Dedicated student & parent portal · Zero ads · Pure academic focus
+                Model Public School Student & Parent Companion App · Zero Ads
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-slate-700"
+            className="p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-slate-700 cursor-pointer"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -106,25 +106,25 @@ export const AppDownloadModal: React.FC<AppDownloadModalProps> = ({ isOpen, onCl
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={handleNativeInstall}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-extrabold text-sm shadow-xl flex items-center justify-center gap-2.5 transition-all transform active:scale-98 border border-blue-400/30"
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-extrabold text-sm shadow-xl flex items-center justify-center gap-2.5 transition-all transform active:scale-98 border border-blue-400/30 cursor-pointer"
             >
               <Download className="w-5 h-5" />
-              <span>{canInstall ? 'Install App on this Device' : 'Install / Download App'}</span>
+              <span>{canInstall ? 'Install MPS App on this Device' : 'Install / Download MPS App'}</span>
             </button>
 
             <button
               onClick={handleOpenApp}
-              className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-sm shadow-md flex items-center justify-center gap-2.5 transition-all border border-slate-700"
+              className="w-full py-3.5 px-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-sm shadow-md flex items-center justify-center gap-2.5 transition-all border border-slate-700 cursor-pointer"
             >
               <ExternalLink className="w-5 h-5 text-amber-400" />
-              <span>Launch Student App Now</span>
+              <span>Launch MPS App Now</span>
             </button>
           </div>
 
           {installStatus === 'installed' && (
             <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs font-bold flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Model Public School App installed successfully! Check your home screen.</span>
+              <span>MPS installed successfully! Check your home screen.</span>
             </div>
           )}
 

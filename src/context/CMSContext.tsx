@@ -464,9 +464,9 @@ export const CMSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let channel: any = null;
     let topicChannel: any = null;
     try {
-      // Subscribe to public:site_settings topic with private config
+      // Subscribe to public:site_settings topic with public/non-private config
       topicChannel = supabase.channel('public:site_settings', {
-        config: { private: true }
+        config: { private: false, broadcast: { self: false } }
       });
 
       const handleIncomingSettings = (incoming: any) => {

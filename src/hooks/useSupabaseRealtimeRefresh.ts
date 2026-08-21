@@ -67,7 +67,7 @@ export function broadcastSupabaseTableChange(
   // 2. Broadcast via Supabase Realtime channel
   try {
     const channel = supabase.channel(topic, {
-      config: { broadcast: { self: false } }
+      config: { private: false, broadcast: { self: false } }
     });
 
     channel.subscribe((status) => {
@@ -135,7 +135,7 @@ export function useSupabaseRealtimeRefresh(
 
       try {
         const channel = supabase.channel(topic, {
-          config: { broadcast: { self: false } }
+          config: { private: false, broadcast: { self: false } }
         });
 
         // 1. Listen to broadcast events on wildcard '*'

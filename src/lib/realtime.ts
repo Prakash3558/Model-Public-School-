@@ -52,7 +52,7 @@ export function broadcastRealtimeChange(table: RealtimeTable | string, eventType
 
     // 2. Broadcast via Supabase Realtime public channel
     const tableChannel = supabase.channel(topic, {
-      config: { broadcast: { self: false } }
+      config: { private: false, broadcast: { self: false } }
     });
 
     tableChannel.subscribe((status) => {
@@ -97,7 +97,7 @@ export function useRealtimeSubscription(
       const topic = `public:${t}`;
       try {
         const channel = supabase.channel(topic, {
-          config: { broadcast: { self: false } }
+          config: { private: false, broadcast: { self: false } }
         });
 
         // 1. Listen to broadcast wildcard '*'

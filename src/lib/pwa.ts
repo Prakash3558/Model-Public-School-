@@ -74,7 +74,7 @@ export function getDeviceOS(): 'android' | 'ios' | 'windows' | 'mac' | 'other' {
   return 'other';
 }
 
-export function downloadWebAppLauncher(schoolName: string = 'Model Public School'): void {
+export function downloadWebAppLauncher(schoolName: string = 'MPS'): void {
   const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://modelpublicschool.vercel.app';
   const targetAppUrl = `${currentOrigin}/app`;
 
@@ -86,8 +86,8 @@ export function downloadWebAppLauncher(schoolName: string = 'Model Public School
   <meta name="theme-color" content="#1e3a8a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="${schoolName} Student App">
-  <title>${schoolName} - Student App</title>
+  <meta name="apple-mobile-web-app-title" content="MPS">
+  <title>MPS</title>
   <link rel="icon" type="image/png" href="${currentOrigin}/logo.png">
   <style>
     body {
@@ -161,10 +161,10 @@ export function downloadWebAppLauncher(schoolName: string = 'Model Public School
   </script>
 </head>
 <body>
-  <img src="${currentOrigin}/logo.png" class="logo" alt="MPS Logo" onerror="this.style.display='none'">
-  <h1>${schoolName}</h1>
-  <p>Launching MPS Student & Parent Companion App...</p>
-  <a href="${targetAppUrl}" class="btn">Open Student App</a>
+  <img src="${currentOrigin}/logo.png" class="logo" alt="MPS Logo" onerror="this.src='/logo.jpg'">
+  <h1>MPS</h1>
+  <p>Launching MPS Official App...</p>
+  <a href="${targetAppUrl}" class="btn">Open MPS App</a>
   <div class="spinner"></div>
 </body>
 </html>`;
@@ -173,7 +173,7 @@ export function downloadWebAppLauncher(schoolName: string = 'Model Public School
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'MPS_Student_App.html';
+  a.download = 'MPS.html';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

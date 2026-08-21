@@ -127,7 +127,6 @@ export default function App() {
                   <ContactSection />
                 </main>
                 <Footer />
-                <AdminCMSToolbar />
               </div>
             )}
 
